@@ -30,11 +30,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="tanggal_mulai" class="form-label fw-semibold">Waktu Mulai</label>
-                            <input type="datetime-local" class="form-control" id="tanggal_mulai" name="tanggal_mulai" required value="<?= old('tanggal_mulai', str_replace(' ', 'T', substr($agenda['tanggal_mulai'], 0, 16))) ?>">
+                            <input type="text" class="form-control bg-white" id="tanggal_mulai" name="tanggal_mulai" required value="<?= old('tanggal_mulai', substr($agenda['tanggal_mulai'], 0, 16)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="tanggal_selesai" class="form-label fw-semibold">Waktu Selesai</label>
-                            <input type="datetime-local" class="form-control" id="tanggal_selesai" name="tanggal_selesai" required value="<?= old('tanggal_selesai', str_replace(' ', 'T', substr($agenda['tanggal_selesai'], 0, 16))) ?>">
+                            <input type="text" class="form-control bg-white" id="tanggal_selesai" name="tanggal_selesai" required value="<?= old('tanggal_selesai', substr($agenda['tanggal_selesai'], 0, 16)) ?>">
                         </div>
                     </div>
 
@@ -105,16 +105,16 @@
             theme: 'bootstrap-5'
         });
 
-        // Flatpickr on datetime-local
+        // Flatpickr on text inputs
         flatpickr("#tanggal_mulai", {
             enableTime: true,
-            dateFormat: "Y-m-d\\TH:i",
+            dateFormat: "Y-m-d H:i",
             time_24hr: true
         });
 
         flatpickr("#tanggal_selesai", {
             enableTime: true,
-            dateFormat: "Y-m-d\\TH:i",
+            dateFormat: "Y-m-d H:i",
             time_24hr: true
         });
 

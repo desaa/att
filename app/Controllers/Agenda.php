@@ -23,8 +23,7 @@ class Agenda extends BaseController
                             ->join('users', 'users.id = agenda.created_by', 'left');
 
         if (!$isSuperadmin) {
-            $query->where('agenda.kode_opd', $user->kode_opd)
-                  ->where('agenda.kode_bagian', $user->kode_bagian);
+            $query->where('agenda.kode_opd', $user->kode_opd);
         }
 
         $data['agendas'] = $query->orderBy('agenda.created_at', 'DESC')->findAll();
@@ -66,8 +65,8 @@ class Agenda extends BaseController
 
         $rules = [
             'nama_agenda'      => 'required|max_length[255]',
-            'tanggal_mulai'    => 'required|valid_date[Y-m-d\TH:i]',
-            'tanggal_selesai'  => 'required|valid_date[Y-m-d\TH:i]',
+            'tanggal_mulai'    => 'required|valid_date[Y-m-d H:i]',
+            'tanggal_selesai'  => 'required|valid_date[Y-m-d H:i]',
             'lokasi'           => 'required|max_length[255]',
             'penanggung_jawab' => 'required|max_length[255]',
             'kode_bagian'      => 'required',
@@ -90,8 +89,8 @@ class Agenda extends BaseController
         $data = [
             'nama_agenda'      => $this->request->getPost('nama_agenda'),
             'deskripsi'        => $this->request->getPost('deskripsi') ?: null,
-            'tanggal_mulai'    => str_replace('T', ' ', $this->request->getPost('tanggal_mulai')) . ':00',
-            'tanggal_selesai'  => str_replace('T', ' ', $this->request->getPost('tanggal_selesai')) . ':00',
+            'tanggal_mulai'    => $this->request->getPost('tanggal_mulai') . ':00',
+            'tanggal_selesai'  => $this->request->getPost('tanggal_selesai') . ':00',
             'lokasi'           => $this->request->getPost('lokasi'),
             'penanggung_jawab' => $this->request->getPost('penanggung_jawab'),
             'kode_opd'         => $kodeOpd,
@@ -120,7 +119,7 @@ class Agenda extends BaseController
         }
 
         // Access check
-        if (!$isSuperadmin && ($agenda['kode_opd'] !== $user->kode_opd || $agenda['kode_bagian'] !== $user->kode_bagian)) {
+        if (!$isSuperadmin && $agenda['kode_opd'] !== $user->kode_opd) {
             return redirect()->to('agenda')->with('error', 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
@@ -153,14 +152,14 @@ class Agenda extends BaseController
         }
 
         // Access check
-        if (!$isSuperadmin && ($agenda['kode_opd'] !== $user->kode_opd || $agenda['kode_bagian'] !== $user->kode_bagian)) {
+        if (!$isSuperadmin && $agenda['kode_opd'] !== $user->kode_opd) {
             return redirect()->to('agenda')->with('error', 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
         $rules = [
             'nama_agenda'      => 'required|max_length[255]',
-            'tanggal_mulai'    => 'required|valid_date[Y-m-d\TH:i]',
-            'tanggal_selesai'  => 'required|valid_date[Y-m-d\TH:i]',
+            'tanggal_mulai'    => 'required|valid_date[Y-m-d H:i]',
+            'tanggal_selesai'  => 'required|valid_date[Y-m-d H:i]',
             'lokasi'           => 'required|max_length[255]',
             'penanggung_jawab' => 'required|max_length[255]',
             'kode_bagian'      => 'required',
@@ -180,8 +179,8 @@ class Agenda extends BaseController
         $data = [
             'nama_agenda'      => $this->request->getPost('nama_agenda'),
             'deskripsi'        => $this->request->getPost('deskripsi') ?: null,
-            'tanggal_mulai'    => str_replace('T', ' ', $this->request->getPost('tanggal_mulai')) . ':00',
-            'tanggal_selesai'  => str_replace('T', ' ', $this->request->getPost('tanggal_selesai')) . ':00',
+            'tanggal_mulai'    => $this->request->getPost('tanggal_mulai') . ':00',
+            'tanggal_selesai'  => $this->request->getPost('tanggal_selesai') . ':00',
             'lokasi'           => $this->request->getPost('lokasi'),
             'penanggung_jawab' => $this->request->getPost('penanggung_jawab'),
             'kode_opd'         => $kodeOpd,
@@ -207,7 +206,7 @@ class Agenda extends BaseController
         }
 
         // Access check
-        if (!$isSuperadmin && ($agenda['kode_opd'] !== $user->kode_opd || $agenda['kode_bagian'] !== $user->kode_bagian)) {
+        if (!$isSuperadmin && $agenda['kode_opd'] !== $user->kode_opd) {
             return redirect()->to('agenda')->with('error', 'Anda tidak memiliki hak untuk menghapus agenda ini.');
         }
 

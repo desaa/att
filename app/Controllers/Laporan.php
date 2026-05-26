@@ -23,6 +23,7 @@ class Laporan extends BaseController
         $endDate = $this->request->getGet('end_date');
         $status = $this->request->getGet('status');
         $pegawaiId = $this->request->getGet('pegawai_id');
+        $idAgenda = $this->request->getGet('id_agenda');
 
         $query = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan')
@@ -32,8 +33,7 @@ class Laporan extends BaseController
 
         // Scope by department if Admin
         if (!$isSuperadmin) {
-            $query->where('buku_tamu.kode_opd', $user->kode_opd)
-                  ->where('buku_tamu.kode_bagian', $user->kode_bagian);
+            $query->where('buku_tamu.kode_opd', $user->kode_opd);
         }
 
         // Apply filters
@@ -48,6 +48,11 @@ class Laporan extends BaseController
         }
         if ($pegawaiId) {
             $query->where('buku_tamu.id_pegawai_tujuan', $pegawaiId);
+        }
+        if ($idAgenda === 'reguler') {
+            $query->where('buku_tamu.id_agenda IS NULL');
+        } elseif ($idAgenda) {
+            $query->where('buku_tamu.id_agenda', $idAgenda);
         }
 
         return $query->orderBy('buku_tamu.waktu_datang', 'DESC')->findAll();
@@ -67,6 +72,14 @@ class Laporan extends BaseController
         }
         $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
 
+        // Fetch active agendas for filter dropdown
+        $agendaModel = new \App\Models\AgendaModel();
+        $agendaBuilder = $agendaModel->where('status', 'aktif');
+        if (!$isSuperadmin) {
+            $agendaBuilder->where('kode_opd', $user->kode_opd);
+        }
+        $data['agendas'] = $agendaBuilder->orderBy('nama_agenda', 'ASC')->findAll();
+
         $data['tamus'] = $this->getFilteredData();
         
         $data['filters'] = [
@@ -74,6 +87,7 @@ class Laporan extends BaseController
             'end_date'   => $this->request->getGet('end_date'),
             'status'     => $this->request->getGet('status'),
             'pegawai_id' => $this->request->getGet('pegawai_id'),
+            'id_agenda'  => $this->request->getGet('id_agenda'),
         ];
         $data['isSuperadmin'] = $isSuperadmin;
 
@@ -85,6 +99,19 @@ class Laporan extends BaseController
         $data['tamus'] = $this->getFilteredData();
         $data['user'] = auth()->user();
         $data['isSuperadmin'] = $data['user']->inGroup('superadmin');
+
+        $idAgenda = $this->request->getGet('id_agenda');
+        $agendaName = '';
+        if ($idAgenda === 'reguler') {
+            $agendaName = 'Tamu Reguler (Tanpa Agenda)';
+        } elseif ($idAgenda) {
+            $agendaModel = new \App\Models\AgendaModel();
+            $agenda = $agendaModel->find($idAgenda);
+            if ($agenda) {
+                $agendaName = 'Agenda: ' . $agenda['nama_agenda'];
+            }
+        }
+        $data['agendaName'] = $agendaName;
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -121,6 +148,26 @@ class Laporan extends BaseController
         $sheet->setCellValue('A2', 'Dinas Komunikasi dan Informatika Kabupaten Grobogan');
         $sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(11);
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
+
+        // Dynamic Agenda Subheader
+        $idAgenda = $this->request->getGet('id_agenda');
+        $agendaName = '';
+        if ($idAgenda === 'reguler') {
+            $agendaName = 'Tamu Reguler (Tanpa Agenda)';
+        } elseif ($idAgenda) {
+            $agendaModel = new \App\Models\AgendaModel();
+            $agenda = $agendaModel->find($idAgenda);
+            if ($agenda) {
+                $agendaName = 'Agenda: ' . $agenda['nama_agenda'];
+            }
+        }
+
+        if (!empty($agendaName)) {
+            $sheet->mergeCells('A3:L3');
+            $sheet->setCellValue('A3', strtoupper($agendaName));
+            $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('4F46E5'));
+            $sheet->getStyle('A3')->getAlignment()->setHorizontal('center');
+        }
 
         // Set Table Headers
         $headers = [

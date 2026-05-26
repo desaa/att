@@ -38,8 +38,7 @@ class Tamu extends BaseController
 
         // Scope by department if Admin
         if (!$isSuperadmin) {
-            $query->where('buku_tamu.kode_opd', $user->kode_opd)
-                  ->where('buku_tamu.kode_bagian', $user->kode_bagian);
+            $query->where('buku_tamu.kode_opd', $user->kode_opd);
         }
 
         // Apply filters
@@ -160,6 +159,13 @@ class Tamu extends BaseController
                                         ->orderBy('nama', 'ASC')
                                         ->findAll();
 
+        // Fetch active agendas for this OPD
+        $agendaModel = new AgendaModel();
+        $data['agendas'] = $agendaModel->where('kode_opd', $user->kode_opd)
+                                       ->where('status', 'aktif')
+                                       ->orderBy('nama_agenda', 'ASC')
+                                       ->findAll();
+
         return view('tamu/input_manual', $data);
     }
 
@@ -174,7 +180,7 @@ class Tamu extends BaseController
 
         $rules = [
             'nama_tamu'         => 'required|max_length[255]',
-            'nik'               => 'required|numeric|min_length[16]|max_length[16]',
+            'nik'               => 'required|numeric|min_length[16]|max_length[18]',
             'instansi'          => 'required|max_length[255]',
             'no_hp'             => 'required|max_length[50]',
             'alamat'            => 'required',
@@ -227,8 +233,16 @@ class Tamu extends BaseController
             $document->move($uploadPath, $docFile);
         }
 
+        // Fetch visited employee details to store their exact department/unit
+        $pegawaiModel = new PegawaiModel();
+        $pegawai = $pegawaiModel->find($this->request->getPost('id_pegawai_tujuan'));
+
+        $idAgenda = $this->request->getPost('id_agenda');
+        $idAgenda = empty($idAgenda) ? null : $idAgenda;
+
         $bukuTamuModel = new BukuTamuModel();
         $data = [
+            'id_agenda'         => $idAgenda,
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
             'nik'               => $this->request->getPost('nik'),
             'instansi'          => $this->request->getPost('instansi'),
@@ -236,9 +250,9 @@ class Tamu extends BaseController
             'alamat'            => $this->request->getPost('alamat'),
             'keperluan'         => $this->request->getPost('keperluan'),
             'id_pegawai_tujuan' => $this->request->getPost('id_pegawai_tujuan'),
-            'kode_opd'         => $user->kode_opd,
-            'kode_bagian'      => $user->kode_bagian,
-            'kode_subbagian'   => $user->kode_subbagian ?: null,
+            'kode_opd'         => $pegawai['kode_opd'],
+            'kode_bagian'      => $pegawai['kode_bagian'],
+            'kode_subbagian'   => $pegawai['kode_subbagian'] ?: null,
             'waktu_datang'      => date('Y-m-d H:i:s'),
             'foto'              => $photoFile,
             'tanda_tangan'      => $sigFile,
@@ -314,7 +328,7 @@ class Tamu extends BaseController
 
         $rules = [
             'nama_tamu'         => 'required|max_length[255]',
-            'nik'               => 'required|numeric|min_length[16]|max_length[16]',
+            'nik'               => 'required|numeric|min_length[16]|max_length[18]',
             'instansi'          => 'required|max_length[255]',
             'no_hp'             => 'required|max_length[50]',
             'alamat'            => 'required',

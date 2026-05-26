@@ -25,9 +25,9 @@
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="nik" class="form-label fw-semibold">NIK (No. KTP) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control font-monospace" id="nik" name="nik" placeholder="16 Digit NIK KTP" required>
-                            <div class="invalid-feedback" id="nik-error">NIK harus tepat 16 digit.</div>
+                            <label for="nik" class="form-label fw-semibold">NIP / NIK (No. KTP) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control font-monospace" id="nik" name="nik" placeholder="16 s.d 18 Digit NIP / NIK" required>
+                            <div class="invalid-feedback" id="nik-error">NIP / NIK harus terdiri dari 16 sampai 18 digit.</div>
                         </div>
                         <div class="col-md-6">
                             <label for="nama_tamu" class="form-label fw-semibold">Nama Lengkap Tamu <span class="text-danger">*</span></label>
@@ -52,6 +52,17 @@
                     </div>
 
                     <h5 class="fw-bold text-indigo mb-3 border-bottom pb-2">Tujuan Kunjungan</h5>
+
+                    <div class="mb-3">
+                        <label for="id_agenda" class="form-label fw-semibold">Agenda Kegiatan</label>
+                        <select class="form-select select2-enable" name="id_agenda" id="id_agenda" style="width: 100%">
+                            <option value="">-- Tamu Bebas / Tanpa Agenda --</option>
+                            <?php foreach ($agendas as $a): ?>
+                                <option value="<?= esc($a['id_agenda']) ?>"><?= esc($a['nama_agenda']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="small text-muted mt-1">Pilih agenda khusus jika kedatangan tamu untuk menghadiri acara/agenda tertentu.</div>
+                    </div>
 
                     <div class="mb-3">
                         <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Dituju <span class="text-danger">*</span></label>
@@ -140,7 +151,7 @@
 
     $(document).ready(function() {
         // Apply inputmask to NIK & Phone
-        Inputmask({ mask: "9999999999999999", placeholder: "" }).mask(document.getElementById("nik"));
+        Inputmask({ mask: "9999999999999999[99]", placeholder: "" }).mask(document.getElementById("nik"));
         Inputmask({ mask: "0999999999999", placeholder: "" }).mask(document.getElementById("no_hp"));
 
         // Initialize Select2
@@ -169,16 +180,16 @@
 
         // Form Submit Handler
         $('#manualGuestForm').on('submit', function(e) {
-            // NIK Validation
+            // NIP / NIK Validation
             let nik = $('#nik').val();
-            if (nik.length !== 16) {
+            if (nik.length < 16 || nik.length > 18) {
                 e.preventDefault();
                 $('#nik').addClass('is-invalid');
                 $('#nik-error').show();
                 Swal.fire({
                     icon: 'warning',
-                    title: 'NIK Tidak Valid',
-                    text: 'Format NIK wajib terdiri dari 16 digit angka.',
+                    title: 'NIP / NIK Tidak Valid',
+                    text: 'Format NIP / NIK wajib terdiri dari 16 s.d 18 digit angka.',
                     confirmButtonColor: '#4f46e5'
                 });
                 return false;

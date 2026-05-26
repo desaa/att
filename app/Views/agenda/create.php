@@ -30,11 +30,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="tanggal_mulai" class="form-label fw-semibold">Waktu Mulai</label>
-                            <input type="datetime-local" class="form-control" id="tanggal_mulai" name="tanggal_mulai" required value="<?= old('tanggal_mulai') ?>">
+                            <input type="text" class="form-control bg-white" id="tanggal_mulai" name="tanggal_mulai" placeholder="YYYY-MM-DD HH:mm" required value="<?= old('tanggal_mulai') ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="tanggal_selesai" class="form-label fw-semibold">Waktu Selesai</label>
-                            <input type="datetime-local" class="form-control" id="tanggal_selesai" name="tanggal_selesai" required value="<?= old('tanggal_selesai') ?>">
+                            <input type="text" class="form-control bg-white" id="tanggal_selesai" name="tanggal_selesai" placeholder="YYYY-MM-DD HH:mm" required value="<?= old('tanggal_selesai') ?>">
                         </div>
                     </div>
 
@@ -106,16 +106,16 @@
             theme: 'bootstrap-5'
         });
 
-        // Flatpickr on datetime-local
+        // Flatpickr on text inputs
         flatpickr("#tanggal_mulai", {
             enableTime: true,
-            dateFormat: "Y-m-d\\TH:i",
+            dateFormat: "Y-m-d H:i",
             time_24hr: true
         });
 
         flatpickr("#tanggal_selesai", {
             enableTime: true,
-            dateFormat: "Y-m-d\\TH:i",
+            dateFormat: "Y-m-d H:i",
             time_24hr: true
         });
 

@@ -30,7 +30,7 @@
                         <input type="text" class="form-control form-control-sm date-picker" id="end_date" name="end_date" placeholder="Pilih Tanggal" value="<?= esc($filters['end_date']) ?>">
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label for="status" class="form-label small fw-semibold">Status Kunjungan</label>
                         <select class="form-select form-select-sm" name="status" id="status">
                             <option value="">-- Semua --</option>
@@ -42,6 +42,19 @@
                     </div>
 
                     <div class="col-md-3">
+                        <label for="id_agenda" class="form-label small fw-semibold">Agenda Kegiatan</label>
+                        <select class="form-select form-select-sm select2-enable" name="id_agenda" id="id_agenda" style="width: 100%;">
+                            <option value="">-- Semua Tamu (Reguler &amp; Agenda) --</option>
+                            <option value="reguler" <?= $filters['id_agenda'] === 'reguler' ? 'selected' : '' ?>>Tamu Reguler (Tanpa Agenda)</option>
+                            <optgroup label="Berdasarkan Agenda">
+                                <?php foreach ($agendas as $a): ?>
+                                    <option value="<?= esc($a['id_agenda']) ?>" <?= $filters['id_agenda'] === (string)$a['id_agenda'] ? 'selected' : '' ?>><?= esc($a['nama_agenda']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="col-md-9">
                         <label for="pegawai_id" class="form-label small fw-semibold">Pegawai Tujuan</label>
                         <select class="form-select form-select-sm select2-enable" name="pegawai_id" id="pegawai_id" style="width: 100%;">
                             <option value="">-- Semua Pegawai --</option>
@@ -51,9 +64,9 @@
                         </select>
                     </div>
 
-                    <div class="col-md-1 d-flex gap-2">
-                        <button type="submit" class="btn btn-sm btn-primary rounded-pill flex-fill py-2" title="Filter"><i class="bi bi-search"></i></button>
-                        <a href="<?= base_url('laporan') ?>" class="btn btn-sm btn-light border rounded-pill flex-fill py-2" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary rounded-pill flex-fill py-2" title="Filter"><i class="bi bi-search me-1"></i> Cari</button>
+                        <a href="<?= base_url('laporan') ?>" class="btn btn-sm btn-light border rounded-pill flex-fill py-2" title="Reset"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</a>
                     </div>
 
                 </form>
@@ -94,42 +107,36 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($tamus)): ?>
+                            <?php $no = 1; foreach ($tamus as $t): ?>
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-secondary">Tidak ada data kunjungan yang cocok dengan filter yang dipilih.</td>
+                                <td class="ps-4"><?= $no++ ?></td>
+                                <td><span class="font-monospace fw-semibold text-primary">#<?= esc($t['no_referensi']) ?></span></td>
+                                <td>
+                                    <div class="fw-semibold text-dark"><?= esc($t['nama_tamu']) ?></div>
+                                    <div class="small text-secondary"><?= esc($t['instansi']) ?></div>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark">D: <?= date('d M Y, H:i', strtotime($t['waktu_datang'])) ?></div>
+                                    <div class="small text-secondary">P: <?= $t['waktu_pulang'] ? date('d M Y, H:i', strtotime($t['waktu_pulang'])) : '-' ?></div>
+                                </td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 200px;" title="<?= esc($t['keperluan']) ?>">
+                                        <?= esc($t['keperluan']) ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-dark"><?= esc($t['nama_pegawai']) ?></div>
+                                    <?php if ($isSuperadmin): ?>
+                                        <div class="text-muted small" style="font-size: 0.7rem;"><?= esc($t['nama_opd']) ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill badge-<?= esc($t['status_kunjungan']) ?> px-3 py-1 text-capitalize">
+                                        <?= esc($t['status_kunjungan']) ?>
+                                    </span>
+                                </td>
                             </tr>
-                            <?php else: ?>
-                                <?php $no = 1; foreach ($tamus as $t): ?>
-                                <tr>
-                                    <td class="ps-4"><?= $no++ ?></td>
-                                    <td><span class="font-monospace fw-semibold text-primary">#<?= esc($t['no_referensi']) ?></span></td>
-                                    <td>
-                                        <div class="fw-semibold text-dark"><?= esc($t['nama_tamu']) ?></div>
-                                        <div class="small text-secondary"><?= esc($t['instansi']) ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="small fw-semibold text-dark">D: <?= date('d M Y, H:i', strtotime($t['waktu_datang'])) ?></div>
-                                        <div class="small text-secondary">P: <?= $t['waktu_pulang'] ? date('d M Y, H:i', strtotime($t['waktu_pulang'])) : '-' ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 200px;" title="<?= esc($t['keperluan']) ?>">
-                                            <?= esc($t['keperluan']) ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="small fw-semibold text-dark"><?= esc($t['nama_pegawai']) ?></div>
-                                        <?php if ($isSuperadmin): ?>
-                                            <div class="text-muted small" style="font-size: 0.7rem;"><?= esc($t['nama_opd']) ?></div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge rounded-pill badge-<?= esc($t['status_kunjungan']) ?> px-3 py-1 text-capitalize">
-                                            <?= esc($t['status_kunjungan']) ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -158,6 +165,8 @@
                 search: "Cari:",
                 lengthMenu: "Tampilkan _MENU_ data",
                 info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                zeroRecords: "Tidak ada data kunjungan yang cocok dengan filter yang dipilih.",
+                emptyTable: "Tidak ada data kunjungan yang cocok dengan filter yang dipilih.",
                 paginate: {
                     first: "Pertama",
                     last: "Terakhir",
@@ -174,9 +183,10 @@
         const endDate = $('#end_date').val();
         const status = $('#status').val();
         const pegawaiId = $('#pegawai_id').val();
+        const idAgenda = $('#id_agenda').val();
 
         // Construct query string
-        let queryParams = `?start_date=${startDate}&end_date=${endDate}&status=${status}&pegawai_id=${pegawaiId}`;
+        let queryParams = `?start_date=${startDate}&end_date=${endDate}&status=${status}&pegawai_id=${pegawaiId}&id_agenda=${idAgenda}`;
         
         let exportUrl = '<?= base_url("laporan") ?>/' + format + queryParams;
         window.open(exportUrl, '_blank');

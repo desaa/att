@@ -124,3 +124,7 @@ _modules/*
 
 /results/
 /phpunit.xml
+
+# Project uploads and temporary session files
+/public/null/*
+/public/uploads/*

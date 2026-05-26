@@ -41,9 +41,9 @@
                 <h5 class="fw-bold text-dark mb-3"><span class="badge bg-primary me-2">1</span>Data Diri Tamu</h5>
                 
                 <div class="mb-3">
-                    <label for="nik" class="form-label fw-semibold">NIK (No. KTP) <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control font-monospace" id="nik" name="nik" placeholder="16 Digit Angka NIK" required>
-                    <div class="invalid-feedback" id="nik-error">NIK harus tepat 16 digit.</div>
+                    <label for="nik" class="form-label fw-semibold">NIP / NIK (No. KTP) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control font-monospace" id="nik" name="nik" placeholder="16 s.d 18 Digit NIP / NIK" required>
+                    <div class="invalid-feedback" id="nik-error">NIP / NIK harus terdiri dari 16 sampai 18 digit.</div>
                 </div>
 
                 <div class="row mb-3">
@@ -171,7 +171,7 @@
 
     $(document).ready(function() {
         // Apply inputmask to NIP / NIK / Phone
-        Inputmask({ mask: "9999999999999999", placeholder: "" }).mask(document.getElementById("nik"));
+        Inputmask({ mask: "9999999999999999[99]", placeholder: "" }).mask(document.getElementById("nik"));
         Inputmask({ mask: "0999999999999", placeholder: "" }).mask(document.getElementById("no_hp"));
 
         // Initialize Select2 in public form (without dialog parent)
@@ -235,7 +235,7 @@
             let instansi = $('#instansi').val();
             let alamat = $('#alamat').val();
 
-            if (nik.length !== 16) {
+            if (nik.length < 16 || nik.length > 18) {
                 $('#nik').addClass('is-invalid');
                 $('#nik-error').show();
                 return;
@@ -314,13 +314,13 @@
                 $('#btn-snap').prop('disabled', false);
                 $('#btn-start-cam').hide();
                 $('#btn-retake').hide();
-                status.text('Kamera Aktif - Siap mengambil foto');
-                status.removeClass('bg-dark').addClass('bg-success');
+                $(status).text('Kamera Aktif - Siap mengambil foto');
+                $(status).removeClass('bg-dark').addClass('bg-success');
             })
             .catch(function(err) {
                 toastr.error('Kamera gagal diakses. Pastikan izin kamera telah diberikan.');
-                status.text('Akses kamera gagal / ditolak.');
-                status.removeClass('bg-dark').addClass('bg-danger');
+                $(status).text('Akses kamera gagal / ditolak.');
+                $(status).removeClass('bg-dark').addClass('bg-danger');
             });
     }
 
@@ -352,8 +352,8 @@
             
             $('#btn-snap').prop('disabled', true);
             $('#btn-retake').show();
-            status.text('Foto berhasil diambil!');
-            status.removeClass('bg-success').addClass('bg-primary');
+            $(status).text('Foto berhasil diambil!');
+            $(status).removeClass('bg-success').addClass('bg-primary');
             
             stopWebcam();
         }

@@ -41,8 +41,8 @@
                                     <div class="small text-muted text-truncate" style="max-width: 250px;"><?= esc($agenda['deskripsi'] ?: 'Tanpa deskripsi') ?></div>
                                 </td>
                                 <td>
-                                    <div class="small fw-semibold text-dark"><i class="bi bi-calendar-event me-1"></i>Mulai: <?= date('d M Y, H:i', strtotime($agenda['tanggal_mulai'])) ?></div>
-                                    <div class="small text-secondary"><i class="bi bi-calendar-x me-1"></i>Selesai: <?= date('d M Y, H:i', strtotime($agenda['tanggal_selesai'])) ?></div>
+                                    <div class="small fw-semibold text-dark"><i class="bi bi-calendar-event me-1"></i>Mulai: <?= date('Y-m-d H:i', strtotime($agenda['tanggal_mulai'])) ?></div>
+                                    <div class="small text-secondary"><i class="bi bi-calendar-x me-1"></i>Selesai: <?= date('Y-m-d H:i', strtotime($agenda['tanggal_selesai'])) ?></div>
                                 </td>
                                 <td>
                                     <div class="small fw-semibold text-dark"><i class="bi bi-geo-alt me-1"></i><?= esc($agenda['lokasi']) ?></div>

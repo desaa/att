@@ -107,6 +107,9 @@
     <!-- Header Section -->
     <div class="header-container">
         <h1 class="header-title">Laporan Kunjungan Tamu Elektronik</h1>
+        <?php if (!empty($agendaName)): ?>
+            <h3 style="margin: 5px 0 0 0; color: #4f46e5; text-transform: uppercase; font-size: 11px; font-weight: bold;"><?= esc($agendaName) ?></h3>
+        <?php endif; ?>
         <p class="header-subtitle">Dinas Komunikasi dan Informatika Kabupaten Grobogan</p>
     </div>
 
