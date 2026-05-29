@@ -1,0 +1,3 @@
+## Role Admin
+1. Modul Input Manual, setelah buka kamera, button untuk ambil gambar tidak tampil
+2. Waktu kunjungan seharusnya 13:22. Di data tertulis 06:21. Timezone gunakan Asia/Jakarta jika masalahnya di Timezone
