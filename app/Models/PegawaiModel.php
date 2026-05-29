@@ -8,7 +8,7 @@ class PegawaiModel extends Model
 {
     protected $table            = 'pegawai';
     protected $primaryKey       = 'id';
-    protected $useAutoIncrement = true;
+    protected $useAutoIncrement = false;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['nip', 'nama', 'kode_opd', 'kode_bagian', 'kode_subbagian', 'jabatan', 'status'];
+    protected $allowedFields    = ['nip', 'nama', 'kode_opd', 'kode_bagian', 'kode_subbagian', 'jabatan', 'status', 'password'];
 }

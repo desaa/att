@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\AgendaModel;
+use App\Models\BukuTamuModel;
 use App\Models\OpdModel;
 use App\Models\BagianModel;
 use Ramsey\Uuid\Uuid;
@@ -17,9 +18,10 @@ class Agenda extends BaseController
         
         $agendaModel = new AgendaModel();
         
-        $query = $agendaModel->select('agenda.*, opd.nama_opd, bagian.nama_bagian, users.username as pembuat')
+        $query = $agendaModel->select('agenda.*, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, users.username as pembuat')
                             ->join('opd', 'opd.kode_opd = agenda.kode_opd')
-                            ->join('bagian', 'bagian.kode_opd = agenda.kode_opd AND bagian.kode_bagian = agenda.kode_bagian')
+                            ->join('bagian', 'bagian.kode_opd = agenda.kode_opd AND bagian.kode_bagian = agenda.kode_bagian', 'left')
+                            ->join('subbagian', 'subbagian.kode_opd = agenda.kode_opd AND subbagian.kode_bagian = agenda.kode_bagian AND subbagian.kode_subbagian = agenda.kode_subbagian', 'left')
                             ->join('users', 'users.id = agenda.created_by', 'left');
 
         if (!$isSuperadmin) {
@@ -43,16 +45,18 @@ class Agenda extends BaseController
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         
-        $opdModel = new OpdModel();
-        $bagianModel = new BagianModel();
+        $db = \Config\Database::connect('simpelgan');
 
         if ($isSuperadmin) {
-            $data['opds'] = $opdModel->orderBy('kode_opd', 'ASC')->findAll();
+            $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
         } else {
+            $opdModel = new OpdModel();
+            $bagianModel = new BagianModel();
             $data['opd'] = $opdModel->find($user->kode_opd);
             $data['bagians'] = $bagianModel->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->findAll();
         }
 
+        $data['subbagians'] = [];
         $data['isSuperadmin'] = $isSuperadmin;
         return view('agenda/create', $data);
     }
@@ -69,7 +73,8 @@ class Agenda extends BaseController
             'tanggal_selesai'  => 'required|valid_date[Y-m-d H:i]',
             'lokasi'           => 'required|max_length[255]',
             'penanggung_jawab' => 'required|max_length[255]',
-            'kode_bagian'      => 'required',
+            'kode_bagian'      => 'permit_empty',
+            'kode_subbagian'   => 'permit_empty',
             'status'           => 'required',
         ];
 
@@ -94,7 +99,8 @@ class Agenda extends BaseController
             'lokasi'           => $this->request->getPost('lokasi'),
             'penanggung_jawab' => $this->request->getPost('penanggung_jawab'),
             'kode_opd'         => $kodeOpd,
-            'kode_bagian'      => $this->request->getPost('kode_bagian'),
+            'kode_bagian'      => $this->request->getPost('kode_bagian') ?: null,
+            'kode_subbagian'   => $this->request->getPost('kode_subbagian') ?: null,
             'qr_code'          => $qrToken,
             'status'           => $this->request->getPost('status'),
             'created_by'       => $user->id,
@@ -123,15 +129,27 @@ class Agenda extends BaseController
             return redirect()->to('agenda')->with('error', 'Anda tidak memiliki hak untuk mengubah agenda ini.');
         }
 
-        $opdModel = new OpdModel();
-        $bagianModel = new BagianModel();
+        $db = \Config\Database::connect('simpelgan');
 
         if ($isSuperadmin) {
-            $data['opds'] = $opdModel->orderBy('kode_opd', 'ASC')->findAll();
-            $data['bagians'] = $bagianModel->where('kode_opd', $agenda['kode_opd'])->orderBy('nama_bagian', 'ASC')->findAll();
+            $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+            $data['bagians'] = $db->table('master_bagian')->where('id_gov', 'P2300001')->where('kode_opd', $agenda['kode_opd'])->orderBy('nama_bagian', 'ASC')->get()->getResultArray();
+            if ($agenda['kode_bagian']) {
+                $data['subbagians'] = $db->table('master_subbagian')->where('id_gov', 'P2300001')->where('kode_opd', $agenda['kode_opd'])->where('kode_bagian', $agenda['kode_bagian'])->orderBy('nama_subbagian', 'ASC')->get()->getResultArray();
+            } else {
+                $data['subbagians'] = [];
+            }
         } else {
+            $opdModel = new OpdModel();
+            $bagianModel = new BagianModel();
+            $subbagianModel = new \App\Models\SubbagianModel();
             $data['opd'] = $opdModel->find($user->kode_opd);
             $data['bagians'] = $bagianModel->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->findAll();
+            if ($agenda['kode_bagian']) {
+                $data['subbagians'] = $subbagianModel->where('kode_opd', $user->kode_opd)->where('kode_bagian', $agenda['kode_bagian'])->orderBy('nama_subbagian', 'ASC')->findAll();
+            } else {
+                $data['subbagians'] = [];
+            }
         }
 
         $data['agenda'] = $agenda;
@@ -162,7 +180,8 @@ class Agenda extends BaseController
             'tanggal_selesai'  => 'required|valid_date[Y-m-d H:i]',
             'lokasi'           => 'required|max_length[255]',
             'penanggung_jawab' => 'required|max_length[255]',
-            'kode_bagian'      => 'required',
+            'kode_bagian'      => 'permit_empty',
+            'kode_subbagian'   => 'permit_empty',
             'status'           => 'required',
         ];
 
@@ -184,7 +203,8 @@ class Agenda extends BaseController
             'lokasi'           => $this->request->getPost('lokasi'),
             'penanggung_jawab' => $this->request->getPost('penanggung_jawab'),
             'kode_opd'         => $kodeOpd,
-            'kode_bagian'      => $this->request->getPost('kode_bagian'),
+            'kode_bagian'      => $this->request->getPost('kode_bagian') ?: null,
+            'kode_subbagian'   => $this->request->getPost('kode_subbagian') ?: null,
             'status'           => $this->request->getPost('status'),
         ];
 
@@ -217,5 +237,43 @@ class Agenda extends BaseController
         } catch (\Exception $e) {
             return redirect()->to('agenda')->with('error', 'Gagal menghapus agenda. Data ini masih memiliki referensi di Buku Tamu.');
         }
+    }
+
+    public function complete($id)
+    {
+        $user = auth()->user();
+        $isSuperadmin = $user->inGroup('superadmin');
+        
+        $agendaModel = new AgendaModel();
+        $agenda = $agendaModel->find($id);
+
+        if (!$agenda) {
+            return redirect()->to('agenda')->with('error', 'Agenda tidak ditemukan.');
+        }
+
+        // Access check: non-superadmin can only complete agendas from their own OPD
+        if (!$isSuperadmin && $agenda['kode_opd'] !== $user->kode_opd) {
+            return redirect()->to('agenda')->with('error', 'Anda tidak memiliki hak untuk menyelesaikan agenda ini.');
+        }
+
+        // Update agenda status to selesai
+        $agendaModel->update($id, ['status' => 'selesai']);
+
+        // Update all tamu attending this agenda
+        $bukuTamuModel = new BukuTamuModel();
+        $now = date('Y-m-d H:i:s');
+        
+        // Update tamu status to selesai and set waktu_pulang
+        $bukuTamuModel->where('id_agenda', $id)
+                      ->whereIn('status_kunjungan', ['menunggu', 'berlangsung'])
+                      ->set([
+                          'status_kunjungan' => 'selesai',
+                          'waktu_pulang' => $now
+                      ])
+                      ->update();
+
+        log_activity('Menyelesaikan Agenda: ' . $agenda['nama_agenda'] . ' (ID: ' . $id . ')', 'agenda', $id);
+
+        return redirect()->to('agenda')->with('success', 'Agenda berhasil diselesaikan dan semua tamu di dalamnya telah diselesaikan.');
     }
 }

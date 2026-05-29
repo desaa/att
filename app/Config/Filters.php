@@ -43,6 +43,8 @@ class Filters extends BaseFilters
         'permission'  => \CodeIgniter\Shield\Filters\PermissionFilter::class,
         'force-reset' => \CodeIgniter\Shield\Filters\ForcePasswordResetFilter::class,
         'jwt'         => \CodeIgniter\Shield\Filters\JWTAuth::class,
+        // Custom Pegawai Auth
+        'pegawai-auth' => \App\Filters\PegawaiAuthFilter::class,
     ];
 
     /**

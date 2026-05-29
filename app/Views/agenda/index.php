@@ -63,6 +63,14 @@
                                             title="Tampilkan QR Code">
                                         <i class="bi bi-qr-code"></i> QR
                                     </button>
+                                    <?php if ($agenda['status'] === 'aktif'): ?>
+                                    <button class="btn btn-sm btn-success text-white border btn-complete me-1" 
+                                            data-url="<?= base_url('agenda/complete/' . $agenda['id_agenda']) ?>" 
+                                            data-name="<?= esc($agenda['nama_agenda']) ?>"
+                                            title="Selesaikan Agenda">
+                                        <i class="bi bi-check-circle-fill"></i> Selesai
+                                    </button>
+                                    <?php endif; ?>
                                     <a href="<?= base_url('agenda/edit/' . $agenda['id_agenda']) ?>" class="btn btn-sm btn-light border me-1" title="Ubah">
                                         <i class="bi bi-pencil-fill text-warning"></i>
                                     </a>
@@ -171,6 +179,34 @@
                     form.appendChild(csrf);
                     document.body.appendChild(form);
                     form.submit();
+                }
+            });
+        });
+
+        // Complete confirmation
+        $('.btn-complete').on('click', function(e) {
+            e.preventDefault();
+            const completeUrl = $(this).data('url');
+            const agendaName = $(this).data('name');
+            
+            Swal.fire({
+                title: 'Selesaikan Agenda?',
+                text: `Apakah Anda yakin ingin menyelesaikan agenda "${agendaName}"? Semua tamu yang terdaftar di agenda ini akan diselesaikan secara otomatis dan jam pulang mereka akan diisi.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'Ya, selesaikan!',
+                cancelButtonText: 'Batal',
+                background: '#ffffff',
+                customClass: {
+                    confirmButton: 'btn btn-success rounded-pill px-4 me-2',
+                    cancelButton: 'btn btn-light rounded-pill px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = completeUrl;
                 }
             });
         });

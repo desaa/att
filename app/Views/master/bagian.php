@@ -8,11 +8,13 @@
         <h2 class="fw-bold text-dark">Master Data Bagian</h2>
         <p class="text-secondary mb-0">Kelola data Bidang / Bagian di lingkungan OPD.</p>
     </div>
+    <?php if (false): ?>
     <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
             <i class="bi bi-plus-lg me-2"></i>Tambah Bagian
         </button>
     </div>
+    <?php endif; ?>
 </div>
 
 <div class="row">
@@ -27,7 +29,9 @@
                                 <th>OPD</th>
                                 <th>Kode Bagian</th>
                                 <th>Nama Bagian</th>
+                                <?php if (false): ?>
                                 <th class="text-end pe-4" style="width: 180px;">Aksi</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -37,6 +41,7 @@
                                 <td><span class="small fw-semibold text-secondary"><?= esc($bagian['nama_opd']) ?></span></td>
                                 <td><span class="badge bg-secondary font-monospace"><?= esc($bagian['kode_bagian']) ?></span></td>
                                 <td class="fw-semibold text-dark"><?= esc($bagian['nama_bagian']) ?></td>
+                                <?php if (false): ?>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-light border me-1" 
                                             onclick="editBagian('<?= esc($bagian['kode_opd']) ?>', '<?= esc($bagian['kode_bagian']) ?>', '<?= esc($bagian['nama_bagian'], 'js') ?>')" 
@@ -49,6 +54,7 @@
                                         <i class="bi bi-trash3-fill text-danger"></i>
                                     </button>
                                 </td>
+                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

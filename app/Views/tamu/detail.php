@@ -57,8 +57,10 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <span class="text-secondary d-block small">Pegawai yang Dituju</span>
-                        <strong class="text-dark"><i class="bi bi-person-circle text-secondary me-1"></i><?= esc($tamu['nama_pegawai']) ?></strong>
-                        <div class="small text-muted ps-4"><?= esc($tamu['jabatan']) ?></div>
+                        <strong class="text-dark"><i class="bi bi-person-circle text-secondary me-1"></i><?= esc($tamu['nama_pegawai'] ?? 'Tamu Agenda') ?></strong>
+                        <?php if (!empty($tamu['jabatan'])): ?>
+                            <div class="small text-muted ps-4"><?= esc($tamu['jabatan']) ?></div>
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-6">
                         <span class="text-secondary d-block small">Unit Kerja / Bagian</span>
@@ -71,7 +73,7 @@
                     
                     <div class="col-12">
                         <span class="text-secondary d-block small">Keperluan / Maksud Kunjungan</span>
-                        <p class="text-dark mb-0 bg-light p-3 rounded" style="white-space: pre-line;"><?= esc($tamu['keperluan']) ?></p>
+                        <p class="text-dark mb-0 bg-light p-3 rounded" style="white-space: pre-line;"><?= esc($tamu['keperluan'] ?? '-') ?></p>
                     </div>
 
                     <div class="col-md-6">

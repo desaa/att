@@ -159,10 +159,10 @@
                         <span style="color: #666666; font-size: 8px;">HP: <?= esc($t['no_hp']) ?></span>
                     </td>
                     <td>
-                        <strong><?= esc($t['nama_pegawai']) ?></strong><br>
+                        <strong><?= esc($t['nama_pegawai'] ?? 'Tamu Agenda') ?></strong><br>
                         <span style="color: #666666; font-size: 8px;"><?= esc($t['nama_bagian']) ?></span>
                     </td>
-                    <td style="font-size: 8.5px;"><?= esc($t['keperluan']) ?></td>
+                    <td style="font-size: 8.5px;"><?= esc($t['keperluan'] ?? '-') ?></td>
                     <td class="text-center"><?= date('d-m-Y H:i', strtotime($t['waktu_datang'])) ?></td>
                     <td class="text-center">
                         <?= $t['waktu_pulang'] ? date('d-m-Y H:i', strtotime($t['waktu_pulang'])) : '-' ?>

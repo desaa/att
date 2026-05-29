@@ -36,7 +36,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="password" class="form-label fw-semibold">Kata Sandi (Password)</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -64,9 +69,9 @@
 
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang</label>
-                            <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" required style="width: 100%" disabled>
-                                <option value="">-- Pilih Bagian --</option>
+                            <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang (Opsional)</label>
+                            <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" style="width: 100%" disabled>
+                                <option value="">-- Pilih Bagian (Opsional) --</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -163,6 +168,14 @@
             } else {
                 subSelect.prop('disabled', true);
             }
+        });
+
+        // Toggle password visibility
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $('#password');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            $(this).find('i').toggleClass('bi-eye bi-eye-slash');
         });
     });
 </script>

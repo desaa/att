@@ -107,12 +107,12 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="text-truncate" style="max-width: 180px;" title="<?= esc($tamu['keperluan']) ?>">
-                                        <?= esc($tamu['keperluan']) ?>
+                                    <div class="text-truncate" style="max-width: 180px;" title="<?= esc($tamu['keperluan'] ?? '-') ?>">
+                                        <?= esc($tamu['keperluan'] ?? '-') ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="small fw-semibold text-dark"><i class="bi bi-person-circle me-1 text-secondary"></i><?= esc($tamu['nama_pegawai']) ?></div>
+                                    <div class="small fw-semibold text-dark"><i class="bi bi-person-circle me-1 text-secondary"></i><?= esc($tamu['nama_pegawai'] ?? 'Tamu Agenda') ?></div>
                                     <div class="small text-secondary"><?= esc($tamu['nama_bagian']) ?></div>
                                     <?php if ($isSuperadmin): ?>
                                         <div class="text-muted small" style="font-size: 0.725rem;"><?= esc($tamu['nama_opd']) ?></div>

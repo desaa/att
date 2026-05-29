@@ -14,22 +14,27 @@
     <div class="col-12 col-md-6">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('users/reset-password/' . $user['id']) ?>" method="POST" id="resetForm">
+                <form action="<?= base_url('users/reset-password/' . $user->id) ?>" method="POST" id="resetForm">
                     <?= csrf_field() ?>
                     
                     <div class="mb-3">
                         <label for="username" class="form-label fw-semibold">Username</label>
-                        <input type="text" class="form-control bg-light font-monospace" id="username" value="@<?= esc($user['username']) ?>" disabled>
+                        <input type="text" class="form-control bg-light font-monospace" id="username" value="@<?= esc($user->username) ?>" disabled>
                     </div>
 
                     <div class="mb-3">
                         <label for="nama" class="form-label fw-semibold">Nama Administrator</label>
-                        <input type="text" class="form-control bg-light" id="nama" value="<?= esc($user['nama'] ?: '-') ?>" disabled>
+                        <input type="text" class="form-control bg-light" id="nama" value="<?= esc($user->nama ?: '-') ?>" disabled>
                     </div>
 
                     <div class="mb-4">
                         <label for="password" class="form-label fw-semibold">Kata Sandi Baru</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         <div class="small text-muted mt-1">Masukkan kata sandi baru yang kuat untuk administrator ini.</div>
                     </div>
 
@@ -42,4 +47,17 @@
         </div>
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    $(document).ready(function() {
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $('#password');
+            const type = passwordInput.attr('type') === 'password' ? 'text' : 'password';
+            passwordInput.attr('type', type);
+            $(this).find('i').toggleClass('bi-eye bi-eye-slash');
+        });
+    });
+</script>
 <?= $this->endSection() ?>
