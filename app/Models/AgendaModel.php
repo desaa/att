@@ -12,7 +12,7 @@ class AgendaModel extends Model
     protected $returnType       = 'array';
     protected $allowedFields    = [
         'nama_agenda', 'deskripsi', 'tanggal_mulai', 'tanggal_selesai', 
-        'lokasi', 'penanggung_jawab', 'kode_opd', 'kode_bagian', 
+        'lokasi', 'penanggung_jawab', 'kode_opd', 'kode_bagian', 'kode_subbagian', 
         'qr_code', 'status', 'created_by', 'created_at'
     ];
 

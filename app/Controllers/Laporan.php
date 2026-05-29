@@ -26,7 +26,7 @@ class Laporan extends BaseController
         $idAgenda = $this->request->getGet('id_agenda');
 
         $query = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, agenda.nama_agenda')
-                              ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan')
+                              ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
                               ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left');
@@ -223,8 +223,8 @@ class Laporan extends BaseController
             $sheet->setCellValue('E' . $rowIdx, $tamu['instansi']);
             $sheet->setCellValue('F' . $rowIdx, "'" . $tamu['no_hp']); // Force string
             $sheet->setCellValue('G' . $rowIdx, $tamu['alamat']);
-            $sheet->setCellValue('H' . $rowIdx, $tamu['keperluan']);
-            $sheet->setCellValue('I' . $rowIdx, $tamu['nama_pegawai']);
+            $sheet->setCellValue('H' . $rowIdx, $tamu['keperluan'] ?? '-');
+            $sheet->setCellValue('I' . $rowIdx, $tamu['nama_pegawai'] ?? 'Tamu Agenda');
             $sheet->setCellValue('J' . $rowIdx, date('d-m-Y H:i', strtotime($tamu['waktu_datang'])));
             $sheet->setCellValue('K' . $rowIdx, $tamu['waktu_pulang'] ? date('d-m-Y H:i', strtotime($tamu['waktu_pulang'])) : '-');
             $sheet->setCellValue('L' . $rowIdx, ucfirst($tamu['status_kunjungan']));
