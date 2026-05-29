@@ -14,31 +14,31 @@
     <div class="col-12 col-lg-8">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('users/update/' . $user['id']) ?>" method="POST" id="usersForm">
+                <form action="<?= base_url('users/update/' . $user->id) ?>" method="POST" id="usersForm">
                     <?= csrf_field() ?>
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="username" class="form-label fw-semibold">Username</label>
-                            <input type="text" class="form-control bg-light" id="username" value="<?= esc($user['username']) ?>" disabled>
+                            <input type="text" class="form-control bg-light" id="username" value="<?= esc($user->username) ?>" disabled>
                             <div class="small text-muted mt-1">Username tidak dapat diubah.</div>
                         </div>
                         <div class="col-md-6">
                             <label for="nama" class="form-label fw-semibold">Nama Lengkap</label>
-                            <input type="text" class="form-control" id="nama" name="nama" placeholder="Nama Lengkap dengan Gelar" required value="<?= old('nama', $user['nama']) ?>">
+                            <input type="text" class="form-control" id="nama" name="nama" placeholder="Nama Lengkap dengan Gelar" required value="<?= old('nama', $user->nama) ?>">
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="email" class="form-label fw-semibold">Alamat Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required value="<?= old('email', $user['email']) ?>">
+                            <input type="email" class="form-control" id="email" name="email" required value="<?= old('email', $user->email) ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="status_akun" class="form-label fw-semibold">Status Akun</label>
                             <select class="form-select" name="status_akun" id="status_akun" required>
-                                <option value="aktif" <?= old('status_akun', $user['status_akun']) === 'aktif' ? 'selected' : '' ?>>Aktif</option>
-                                <option value="nonaktif" <?= old('status_akun', $user['status_akun']) === 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
+                                <option value="aktif" <?= old('status_akun', $user->status_akun) === 'aktif' ? 'selected' : '' ?>>Aktif</option>
+                                <option value="nonaktif" <?= old('status_akun', $user->status_akun) === 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
                             </select>
                         </div>
                     </div>
@@ -50,7 +50,7 @@
                         <select class="form-select select2-enable" name="kode_opd" id="kode_opd" required style="width: 100%">
                             <option value="">-- Pilih OPD --</option>
                             <?php foreach ($opds as $row): ?>
-                                <option value="<?= esc($row['kode_opd']) ?>" <?= old('kode_opd', $user['kode_opd']) === $row['kode_opd'] ? 'selected' : '' ?>>[<?= esc($row['kode_opd']) ?>] <?= esc($row['nama_opd']) ?></option>
+                                <option value="<?= esc($row['kode_opd']) ?>" <?= old('kode_opd', $user->kode_opd) === $row['kode_opd'] ? 'selected' : '' ?>>[<?= esc($row['kode_opd']) ?>] <?= esc($row['nama_opd']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -61,7 +61,7 @@
                             <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" required style="width: 100%">
                                 <option value="">-- Pilih Bagian --</option>
                                 <?php foreach ($bagians as $row): ?>
-                                    <option value="<?= esc($row['kode_bagian']) ?>" <?= old('kode_bagian', $user['kode_bagian']) === $row['kode_bagian'] ? 'selected' : '' ?>><?= esc($row['nama_bagian']) ?></option>
+                                    <option value="<?= esc($row['kode_bagian']) ?>" <?= old('kode_bagian', $user->kode_bagian) === $row['kode_bagian'] ? 'selected' : '' ?>><?= esc($row['nama_bagian']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -70,7 +70,7 @@
                             <select class="form-select select2-enable" name="kode_subbagian" id="kode_subbagian" style="width: 100%" <?= !empty($subbagians) ? '' : 'disabled' ?>>
                                 <option value="">-- Pilih Subbagian --</option>
                                 <?php foreach ($subbagians as $row): ?>
-                                    <option value="<?= esc($row['kode_subbagian']) ?>" <?= old('kode_subbagian', $user['kode_subbagian']) === $row['kode_subbagian'] ? 'selected' : '' ?>><?= esc($row['nama_subbagian']) ?></option>
+                                    <option value="<?= esc($row['kode_subbagian']) ?>" <?= old('kode_subbagian', $user->kode_subbagian) === $row['kode_subbagian'] ? 'selected' : '' ?>><?= esc($row['nama_subbagian']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

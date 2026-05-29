@@ -8,11 +8,13 @@
         <h2 class="fw-bold text-dark">Master Data Subbagian</h2>
         <p class="text-secondary mb-0">Kelola data Subbagian di lingkungan Bagian / Bidang.</p>
     </div>
+    <?php if (false): ?>
     <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
             <i class="bi bi-plus-lg me-2"></i>Tambah Subbagian
         </button>
     </div>
+    <?php endif; ?>
 </div>
 
 <div class="row">
@@ -28,7 +30,9 @@
                                 <th>Bagian</th>
                                 <th>Kode Subbagian</th>
                                 <th>Nama Subbagian</th>
+                                <?php if (false): ?>
                                 <th class="text-end pe-4" style="width: 180px;">Aksi</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -39,6 +43,7 @@
                                 <td><span class="small fw-semibold text-secondary"><?= esc($sub['nama_bagian']) ?></span></td>
                                 <td><span class="badge bg-secondary font-monospace"><?= esc($sub['kode_subbagian']) ?></span></td>
                                 <td class="fw-semibold text-dark"><?= esc($sub['nama_subbagian']) ?></td>
+                                <?php if (false): ?>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-light border me-1" 
                                             onclick="editSubbagian('<?= esc($sub['kode_opd']) ?>', '<?= esc($sub['kode_bagian']) ?>', '<?= esc($sub['kode_subbagian']) ?>', '<?= esc($sub['nama_subbagian'], 'js') ?>')" 
@@ -51,6 +56,7 @@
                                         <i class="bi bi-trash3-fill text-danger"></i>
                                     </button>
                                 </td>
+                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $this->renderSection('title') ?> - Buku Tamu Elektronik</title>
+    <title><?= $this->renderSection('title') ?> - Portal Pegawai</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,11 +17,6 @@
     <!-- DataTables Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-    <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <!-- Select2 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <!-- Custom CSS -->
@@ -31,15 +26,16 @@
 </head>
 <body>
     <?php
-        $user = auth()->user();
-        $isSuperadmin = $user->inGroup('superadmin');
+        $pegawaiNama = session()->get('pegawai_nama');
+        $pegawaiNip  = session()->get('pegawai_nip');
+        $pegawaiJabatan = session()->get('pegawai_jabatan');
     ?>
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="<?= base_url('dashboard') ?>" class="sidebar-brand">
-                <i class="bi bi-person-vcard-fill me-2"></i>E-GuestBook
+            <a href="<?= base_url('pegawai-portal/dashboard') ?>" class="sidebar-brand">
+                <i class="bi bi-person-vcard-fill me-2"></i>Portal Pegawai
             </a>
             <button class="btn d-lg-none text-white p-0" onclick="toggleSidebar()">
                 <i class="bi bi-x-lg fs-5"></i>
@@ -48,7 +44,7 @@
         
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="<?= base_url('dashboard') ?>" class="sidebar-link <?= url_is('dashboard*') ? 'active' : '' ?>">
+                <a href="<?= base_url('pegawai-portal/dashboard') ?>" class="sidebar-link <?= url_is('pegawai-portal/dashboard*') ? 'active' : '' ?>">
                     <i class="bi bi-grid-1x2-fill"></i>Dashboard
                 </a>
             </li>
@@ -56,66 +52,10 @@
             <li class="sidebar-menu-label">Layanan Tamu</li>
             
             <li class="sidebar-item">
-                <a href="<?= base_url('tamu') ?>" class="sidebar-link <?= (url_is('tamu*') && !url_is('tamu/input') && !url_is('tamu/qr-umum')) ? 'active' : '' ?>">
-                    <i class="bi bi-people-fill"></i>Data Tamu
+                <a href="<?= base_url('pegawai-portal/tamu?status=menunggu') ?>" class="sidebar-link <?= url_is('pegawai-portal/tamu*') ? 'active' : '' ?>">
+                    <i class="bi bi-people-fill"></i>Daftar Tamu
                 </a>
             </li>
-            
-            <li class="sidebar-item">
-                <a href="<?= base_url('tamu/qr-umum') ?>" class="sidebar-link <?= url_is('tamu/qr-umum*') ? 'active' : '' ?>">
-                    <i class="bi bi-qr-code-scan"></i>QR Tamu Umum
-                </a>
-            </li>
-            
-            <?php if (!$isSuperadmin): ?>
-            <li class="sidebar-item">
-                <a href="<?= base_url('tamu/input') ?>" class="sidebar-link <?= url_is('tamu/input*') ? 'active' : '' ?>">
-                    <i class="bi bi-person-plus-fill"></i>Input Manual
-                </a>
-            </li>
-            <?php endif; ?>
-            
-            <li class="sidebar-item">
-                <a href="<?= base_url('agenda') ?>" class="sidebar-link <?= url_is('agenda*') ? 'active' : '' ?>">
-                    <i class="bi bi-calendar-event-fill"></i>Manajemen Agenda
-                </a>
-            </li>
-
-            <li class="sidebar-item">
-                <a href="<?= base_url('laporan') ?>" class="sidebar-link <?= url_is('laporan*') ? 'active' : '' ?>">
-                    <i class="bi bi-file-earmark-bar-graph-fill"></i>Laporan &amp; Export
-                </a>
-            </li>
-            
-            <?php if ($isSuperadmin): ?>
-            <li class="sidebar-menu-label">Master Data &amp; Sistem</li>
-            
-            <li class="sidebar-item">
-                <a href="<?= base_url('users') ?>" class="sidebar-link <?= url_is('users*') ? 'active' : '' ?>">
-                    <i class="bi bi-person-fill-gear"></i>Manajemen User
-                </a>
-            </li>
-            
-            <?php if (false): ?>
-            <li class="sidebar-item">
-                <a href="<?= base_url('master/opd') ?>" class="sidebar-link <?= url_is('master/opd*') || url_is('master/bagian*') || url_is('master/subbagian*') ? 'active' : '' ?>">
-                    <i class="bi bi-building-fill"></i>OPD &amp; Bagian
-                </a>
-            </li>
-            
-            <li class="sidebar-item">
-                <a href="<?= base_url('pegawai') ?>" class="sidebar-link <?= url_is('pegawai*') ? 'active' : '' ?>">
-                    <i class="bi bi-person-workspace"></i>Master Pegawai
-                </a>
-            </li>
-            <?php endif; ?>
-            
-            <li class="sidebar-item">
-                <a href="<?= base_url('audit') ?>" class="sidebar-link <?= url_is('audit*') ? 'active' : '' ?>">
-                    <i class="bi bi-shield-check"></i>Audit Log
-                </a>
-            </li>
-            <?php endif; ?>
         </ul>
     </div>
 
@@ -134,30 +74,33 @@
             
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 38px; height: 38px; font-weight: 600;">
-                        <?= substr($user->nama ?? $user->username, 0, 1) ?>
+                    <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 38px; height: 38px; font-weight: 600;">
+                        <?= substr($pegawaiNama ?? 'P', 0, 1) ?>
                     </div>
                     <div class="d-none d-sm-block text-start me-1">
-                        <div class="fw-semibold text-truncate" style="max-width: 150px;"><?= esc($user->nama ?? $user->username) ?></div>
-                        <div class="small text-muted" style="font-size: 0.75rem;"><?= $isSuperadmin ? 'Superadmin' : 'Admin Unit' ?></div>
+                        <div class="fw-semibold text-truncate" style="max-width: 150px;"><?= esc($pegawaiNama ?? 'Pegawai') ?></div>
+                        <div class="small text-muted" style="font-size: 0.75rem;">Pegawai</div>
                     </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" aria-labelledby="userDropdown" style="border-radius: 0.75rem;">
                     <li>
                         <div class="dropdown-header text-dark">
                             <strong>Login as:</strong><br>
-                            <span class="text-muted"><?= esc($user->email) ?></span>
+                            <span class="text-muted">NIP: <?= esc($pegawaiNip ?? '-') ?></span><br>
+                            <span class="text-muted small"><?= esc($pegawaiJabatan ?? '') ?></span>
                         </div>
                     </li>
                     <li><hr class="dropdown-divider"></li>
+                    <?php if (false): ?>
                     <li>
-                        <a class="dropdown-item d-flex align-items-center" href="<?= base_url('ganti-password') ?>">
+                        <a class="dropdown-item d-flex align-items-center" href="<?= base_url('pegawai-portal/ganti-password') ?>">
                             <i class="bi bi-key me-2"></i> Ganti Password
                         </a>
                     </li>
+                    <?php endif; ?>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item text-danger d-flex align-items-center" href="<?= base_url('logout') ?>">
+                        <a class="dropdown-item text-danger d-flex align-items-center" href="<?= base_url('pegawai-portal/logout') ?>">
                             <i class="bi bi-box-arrow-right me-2"></i> Logout
                         </a>
                     </li>
@@ -183,20 +126,10 @@
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
-    <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Toastr JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
-    <!-- Signature Pad JS -->
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-    <!-- Inputmask JS -->
-    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
-    <!-- Moment JS -->
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
     <!-- Chart JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
