@@ -57,9 +57,9 @@
 
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang</label>
-                            <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" required style="width: 100%">
-                                <option value="">-- Pilih Bagian --</option>
+                            <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang (Opsional)</label>
+                            <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" style="width: 100%">
+                                <option value="">-- Pilih Bagian (Opsional) --</option>
                                 <?php foreach ($bagians as $row): ?>
                                     <option value="<?= esc($row['kode_bagian']) ?>" <?= old('kode_bagian', $user->kode_bagian) === $row['kode_bagian'] ? 'selected' : '' ?>><?= esc($row['nama_bagian']) ?></option>
                                 <?php endforeach; ?>
@@ -68,7 +68,7 @@
                         <div class="col-md-6">
                             <label for="kode_subbagian" class="form-label fw-semibold">Subbagian / Seksi (Opsional)</label>
                             <select class="form-select select2-enable" name="kode_subbagian" id="kode_subbagian" style="width: 100%" <?= !empty($subbagians) ? '' : 'disabled' ?>>
-                                <option value="">-- Pilih Subbagian --</option>
+                                <option value="">-- Pilih Subbagian (Opsional) --</option>
                                 <?php foreach ($subbagians as $row): ?>
                                     <option value="<?= esc($row['kode_subbagian']) ?>" <?= old('kode_subbagian', $user->kode_subbagian) === $row['kode_subbagian'] ? 'selected' : '' ?>><?= esc($row['nama_subbagian']) ?></option>
                                 <?php endforeach; ?>
@@ -100,38 +100,37 @@
             let kodeOpd = $(this).val();
             let bagianSelect = $('#kode_bagian');
             let subSelect = $('#kode_subbagian');
-            
+
             if ($(this).data('initialized')) {
-                bagianSelect.empty().append('<option value="">-- Pilih Bagian --</option>').trigger('change');
-                subSelect.empty().append('<option value="">-- Pilih Subbagian --</option>').prop('disabled', true).trigger('change');
-            } else {
-                $(this).data('initialized', true);
-                return; // Keep initial preselected Bagian
-            }
-            
-            if (kodeOpd) {
-                bagianSelect.prop('disabled', true);
-                
-                $.ajax({
-                    url: '<?= base_url("api/bagian") ?>/' + kodeOpd,
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.length > 0) {
+                // User changed OPD: reset bagian & subbagian
+                bagianSelect.empty().append('<option value="">-- Pilih Bagian (Opsional) --</option>').trigger('change');
+                subSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').prop('disabled', true).trigger('change');
+
+                if (kodeOpd) {
+                    bagianSelect.prop('disabled', true);
+                    $.ajax({
+                        url: '<?= base_url("api/bagian") ?>/' + kodeOpd,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            bagianSelect.prop('disabled', false);
                             $.each(data, function(key, val) {
                                 bagianSelect.append('<option value="' + val.kode_bagian + '">' + val.nama_bagian + '</option>');
                             });
+                            bagianSelect.trigger('change.select2');
+                        },
+                        error: function() {
                             bagianSelect.prop('disabled', false);
-                        } else {
-                            bagianSelect.prop('disabled', true);
+                            toastr.error('Gagal mengambil data Bagian.');
                         }
-                    },
-                    error: function() {
-                        toastr.error('Gagal mengambil data Bagian.');
-                    }
-                });
+                    });
+                } else {
+                    bagianSelect.prop('disabled', true);
+                }
             } else {
-                bagianSelect.prop('disabled', true);
+                $(this).data('initialized', true);
+                // First load — keep existing preselected value, but still enable bagian
+                bagianSelect.prop('disabled', false);
             }
         });
 
@@ -140,42 +139,40 @@
             let kodeOpd = $('#kode_opd').val();
             let kodeBagian = $(this).val();
             let subSelect = $('#kode_subbagian');
-            
+
             if ($(this).data('initialized')) {
-                subSelect.empty().append('<option value="">-- Pilih Subbagian --</option>').trigger('change');
-            } else {
-                $(this).data('initialized', true);
-                return; // Keep initial preselected Subbagian
-            }
-            
-            if (kodeOpd && kodeBagian) {
-                subSelect.prop('disabled', true);
-                
-                $.ajax({
-                    url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.length > 0) {
+                // User changed Bagian: reset subbagian
+                subSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').prop('disabled', true).trigger('change');
+
+                if (kodeOpd && kodeBagian) {
+                    subSelect.prop('disabled', true);
+                    $.ajax({
+                        url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            subSelect.prop('disabled', false);
                             $.each(data, function(key, val) {
                                 subSelect.append('<option value="' + val.kode_subbagian + '">' + val.nama_subbagian + '</option>');
                             });
+                            subSelect.trigger('change.select2');
+                        },
+                        error: function() {
                             subSelect.prop('disabled', false);
-                        } else {
-                            subSelect.prop('disabled', true);
+                            toastr.error('Gagal mengambil data Subbagian.');
                         }
-                    },
-                    error: function() {
-                        toastr.error('Gagal mengambil data Subbagian.');
-                    }
-                });
+                    });
+                }
             } else {
-                subSelect.prop('disabled', true);
+                $(this).data('initialized', true);
+                // First load — keep existing preselected subbagian value
             }
         });
 
-        $('#kode_opd').data('initialized', false);
+        // Trigger initialization
+        $('#kode_opd').data('initialized', false).trigger('change');
         $('#kode_bagian').data('initialized', false);
+
     });
 </script>
 <?= $this->endSection() ?>
