@@ -128,3 +128,6 @@ _modules/*
 # Project uploads and temporary session files
 /public/null/*
 /public/uploads/*
+
+# Temporary debug/test scripts
+test_db.php

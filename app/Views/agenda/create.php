@@ -76,14 +76,21 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang Penyelenggara</label>
-                        <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" required style="width: 100%" <?= !$isSuperadmin ? '' : 'disabled' ?>>
-                            <option value="">-- Pilih Bagian --</option>
+                        <label for="kode_bagian" class="form-label fw-semibold">Bagian / Bidang Penyelenggara (Opsional)</label>
+                        <select class="form-select select2-enable" name="kode_bagian" id="kode_bagian" style="width: 100%" <?= !$isSuperadmin ? '' : 'disabled' ?>>
+                            <option value="">-- Pilih Bagian (Opsional) --</option>
                             <?php if (!$isSuperadmin): ?>
                                 <?php foreach ($bagians as $row): ?>
                                     <option value="<?= esc($row['kode_bagian']) ?>" <?= old('kode_bagian') === $row['kode_bagian'] ? 'selected' : '' ?>><?= esc($row['nama_bagian']) ?></option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="kode_subbagian" class="form-label fw-semibold">Subbagian / Subbidang Penyelenggara (Opsional)</label>
+                        <select class="form-select select2-enable" name="kode_subbagian" id="kode_subbagian" style="width: 100%" disabled>
+                            <option value="">-- Pilih Subbagian (Opsional) --</option>
                         </select>
                     </div>
 
@@ -123,8 +130,10 @@
         $('#kode_opd').on('change', function() {
             let kodeOpd = $(this).val();
             let bagianSelect = $('#kode_bagian');
+            let subbagianSelect = $('#kode_subbagian');
             
-            bagianSelect.empty().append('<option value="">-- Pilih Bagian --</option>').trigger('change');
+            bagianSelect.empty().append('<option value="">-- Pilih Bagian (Opsional) --</option>').trigger('change');
+            subbagianSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').prop('disabled', true).trigger('change');
             
             if (kodeOpd) {
                 bagianSelect.prop('disabled', true);
@@ -134,13 +143,11 @@
                     type: 'GET',
                     dataType: 'json',
                     success: function(data) {
+                        bagianSelect.prop('disabled', false);
                         if (data.length > 0) {
                             $.each(data, function(key, val) {
                                 bagianSelect.append('<option value="' + val.kode_bagian + '">' + val.nama_bagian + '</option>');
                             });
-                            bagianSelect.prop('disabled', false);
-                        } else {
-                            bagianSelect.prop('disabled', true);
                         }
                     },
                     error: function() {
@@ -149,6 +156,38 @@
                 });
             } else {
                 bagianSelect.prop('disabled', true);
+            }
+        });
+
+        // Cascading Dropdown (Bagian -> Subbagian)
+        $('#kode_bagian').on('change', function() {
+            let kodeOpd = $('#kode_opd').val();
+            let kodeBagian = $(this).val();
+            let subbagianSelect = $('#kode_subbagian');
+            
+            subbagianSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').trigger('change');
+            
+            if (kodeOpd && kodeBagian) {
+                subbagianSelect.prop('disabled', true);
+                
+                $.ajax({
+                    url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        subbagianSelect.prop('disabled', false);
+                        if (data.length > 0) {
+                            $.each(data, function(key, val) {
+                                subbagianSelect.append('<option value="' + val.kode_subbagian + '">' + val.nama_subbagian + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Gagal mengambil data Subbagian.');
+                    }
+                });
+            } else {
+                subbagianSelect.prop('disabled', true);
             }
         });
     });

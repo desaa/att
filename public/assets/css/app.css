@@ -351,3 +351,14 @@ body {
     box-shadow: none;
     transform: none;
 }
+
+/* Custom Indigo Utilities for Badges */
+.text-indigo {
+    color: #4f46e5 !important;
+}
+.bg-indigo-subtle {
+    background-color: #e0e7ff !important;
+}
+.border-indigo-subtle {
+    border-color: #c7d2fe !important;
+}

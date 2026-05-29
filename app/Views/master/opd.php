@@ -8,11 +8,13 @@
         <h2 class="fw-bold text-dark">Master Data OPD</h2>
         <p class="text-secondary mb-0">Kelola data Dinas / Organisasi Perangkat Daerah.</p>
     </div>
+    <?php if (false): ?>
     <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
         <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addModal">
             <i class="bi bi-plus-lg me-2"></i>Tambah OPD
         </button>
     </div>
+    <?php endif; ?>
 </div>
 
 <div class="row">
@@ -26,7 +28,9 @@
                                 <th class="ps-4" style="width: 80px;">No</th>
                                 <th>Kode OPD</th>
                                 <th>Nama OPD</th>
+                                <?php if (false): ?>
                                 <th class="text-end pe-4" style="width: 180px;">Aksi</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -35,6 +39,7 @@
                                 <td class="ps-4"><?= $no++ ?></td>
                                 <td><span class="badge bg-secondary font-monospace"><?= esc($opd['kode_opd']) ?></span></td>
                                 <td class="fw-semibold text-dark"><?= esc($opd['nama_opd']) ?></td>
+                                <?php if (false): ?>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-light border me-1" 
                                             onclick="editOpd('<?= esc($opd['kode_opd']) ?>', '<?= esc($opd['nama_opd'], 'js') ?>')" 
@@ -47,6 +52,7 @@
                                         <i class="bi bi-trash3-fill text-danger"></i>
                                     </button>
                                 </td>
+                                <?php endif; ?>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>

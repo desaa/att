@@ -3,9 +3,6 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
-use App\Models\OpdModel;
-use App\Models\BagianModel;
-use App\Models\SubbagianModel;
 use CodeIgniter\Shield\Entities\User;
 
 class Users extends BaseController
@@ -27,8 +24,10 @@ class Users extends BaseController
 
     public function create()
     {
-        $opdModel = new OpdModel();
-        $data['opds'] = $opdModel->orderBy('kode_opd', 'ASC')->findAll();
+        $db = \Config\Database::connect('simpelgan');
+        $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+        $data['bagians'] = [];
+        $data['subbagians'] = [];
         return view('users/create', $data);
     }
 
@@ -42,7 +41,7 @@ class Users extends BaseController
             'password'     => 'required|min_length[8]',
             'nama'         => 'required|max_length[255]',
             'kode_opd'     => 'required',
-            'kode_bagian'  => 'required',
+            'kode_bagian'  => 'permit_empty',
             'status_akun'  => 'required',
         ];
 
@@ -86,18 +85,18 @@ class Users extends BaseController
             return redirect()->to('users')->with('error', 'User tidak ditemukan.');
         }
 
-        $opdModel = new OpdModel();
-        $bagianModel = new BagianModel();
-        $subbagianModel = new SubbagianModel();
+        $db = \Config\Database::connect('simpelgan');
 
-        $data['opds'] = $opdModel->orderBy('kode_opd', 'ASC')->findAll();
-        $data['bagians'] = $bagianModel->where('kode_opd', $user['kode_opd'])->orderBy('nama_bagian', 'ASC')->findAll();
+        $data['opds']     = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+        $data['bagians']  = $db->table('master_bagian')->where('id_gov', 'P2300001')->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->get()->getResultArray();
         
-        if ($user['kode_bagian']) {
-            $data['subbagians'] = $subbagianModel->where('kode_opd', $user['kode_opd'])
-                                                 ->where('kode_bagian', $user['kode_bagian'])
-                                                 ->orderBy('nama_subbagian', 'ASC')
-                                                 ->findAll();
+        if ($user->kode_bagian) {
+            $data['subbagians'] = $db->table('master_subbagian')
+                                     ->where('id_gov', 'P2300001')
+                                     ->where('kode_opd', $user->kode_opd)
+                                     ->where('kode_bagian', $user->kode_bagian)
+                                     ->orderBy('nama_subbagian', 'ASC')
+                                     ->get()->getResultArray();
         } else {
             $data['subbagians'] = [];
         }
@@ -115,7 +114,7 @@ class Users extends BaseController
             'email'        => "required|valid_email|is_unique[auth_identities.secret,user_id,$id]",
             'nama'         => 'required|max_length[255]',
             'kode_opd'     => 'required',
-            'kode_bagian'  => 'required',
+            'kode_bagian'  => 'permit_empty',
             'status_akun'  => 'required',
         ];
 

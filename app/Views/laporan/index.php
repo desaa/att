@@ -120,12 +120,12 @@
                                     <div class="small text-secondary">P: <?= $t['waktu_pulang'] ? date('d M Y, H:i', strtotime($t['waktu_pulang'])) : '-' ?></div>
                                 </td>
                                 <td>
-                                    <div class="text-truncate" style="max-width: 200px;" title="<?= esc($t['keperluan']) ?>">
-                                        <?= esc($t['keperluan']) ?>
+                                    <div class="text-truncate" style="max-width: 200px;" title="<?= esc($t['keperluan'] ?? '-') ?>">
+                                        <?= esc($t['keperluan'] ?? '-') ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="small fw-semibold text-dark"><?= esc($t['nama_pegawai']) ?></div>
+                                    <div class="small fw-semibold text-dark"><?= esc($t['nama_pegawai'] ?? 'Tamu Agenda') ?></div>
                                     <?php if ($isSuperadmin): ?>
                                         <div class="text-muted small" style="font-size: 0.7rem;"><?= esc($t['nama_opd']) ?></div>
                                     <?php endif; ?>

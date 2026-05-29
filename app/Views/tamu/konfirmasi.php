@@ -34,7 +34,7 @@
                 
                 <div class="col-6">
                     <span class="text-secondary d-block">Pegawai Tujuan</span>
-                    <strong class="text-dark"><i class="bi bi-person-fill me-1 text-secondary"></i><?= esc($tamu['nama_pegawai']) ?></strong>
+                    <strong class="text-dark"><i class="bi bi-person-fill me-1 text-secondary"></i><?= !empty($tamu['nama_pegawai']) ? esc($tamu['nama_pegawai']) : 'Tamu Agenda' ?></strong>
                 </div>
                 <div class="col-6">
                     <span class="text-secondary d-block">Unit Kerja Tujuan</span>

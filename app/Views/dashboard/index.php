@@ -3,11 +3,22 @@
 <?= $this->section('title') ?>Dashboard<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="row mb-4">
-    <div class="col-12">
+<div class="row mb-4 align-items-center">
+    <div class="col-sm-6">
         <h2 class="fw-bold text-dark">Dashboard</h2>
         <p class="text-secondary mb-0">Selamat datang di Panel E-GuestBook Diskominfo Kabupaten Grobogan.</p>
     </div>
+    <?php if ($isSuperadmin): ?>
+    <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+        <div class="d-inline-block text-start me-3 align-middle">
+            <span class="text-muted small d-block" style="font-size: 0.75rem;">Terakhir Sinkronisasi SIMPELGAN:</span>
+            <span class="fw-semibold text-indigo small"><i class="bi bi-clock-history me-1"></i><?= esc($lastSyncTime) ?></span>
+        </div>
+        <a href="<?= base_url('dashboard/sync-simpelgan') ?>" class="btn btn-primary rounded-pill px-4 btn-sync align-middle">
+            <i class="bi bi-arrow-repeat me-2"></i>Sinkronkan SIMPELGAN
+        </a>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Stats row -->
@@ -144,12 +155,12 @@
                                         <div class="small text-secondary"><?= esc($tamu['instansi']) ?></div>
                                     </td>
                                     <td>
-                                        <div class="text-truncate" style="max-width: 200px;" title="<?= esc($tamu['keperluan']) ?>">
-                                            <?= esc($tamu['keperluan']) ?>
+                                        <div class="text-truncate" style="max-width: 200px;" title="<?= esc($tamu['keperluan'] ?? '-') ?>">
+                                            <?= esc($tamu['keperluan'] ?? '-') ?>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold"><i class="bi bi-person-circle me-1"></i><?= esc($tamu['nama_pegawai']) ?></div>
+                                        <div class="fw-semibold"><i class="bi bi-person-circle me-1"></i><?= esc($tamu['nama_pegawai'] ?? 'Tamu Agenda') ?></div>
                                         <div class="small text-secondary"><?= esc($tamu['nama_bagian']) ?> - <?= esc($tamu['nama_opd']) ?></div>
                                     </td>
                                     <td>
@@ -261,6 +272,15 @@
             }
         });
         <?php endif; ?>
+
+        // 3. Sync button loading state
+        const syncBtn = document.querySelector('.btn-sync');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', function(e) {
+                this.classList.add('disabled');
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyinkronkan...';
+            });
+        }
     });
 </script>
 <?= $this->endSection() ?>
