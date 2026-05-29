@@ -11,14 +11,35 @@ class Users extends BaseController
     {
         $userModel = new UserModel();
         
-        $data['users'] = $userModel->select('users.*, auth_identities.secret as email, auth_groups_users.group, opd.nama_opd, bagian.nama_bagian')
-                                   ->join('auth_identities', 'auth_identities.user_id = users.id AND auth_identities.type = "email_password"', 'left')
-                                   ->join('auth_groups_users', 'auth_groups_users.user_id = users.id', 'left')
-                                   ->join('opd', 'opd.kode_opd = users.kode_opd', 'left')
-                                   ->join('bagian', 'bagian.kode_opd = users.kode_opd AND bagian.kode_bagian = users.kode_bagian', 'left')
-                                   ->orderBy('users.username', 'ASC')
-                                   ->findAll();
+        // Ambil data user beserta email dan grup — sebagai array biasa
+        $users = $userModel->select('users.*, auth_identities.secret as email, auth_groups_users.group')
+                           ->join('auth_identities', 'auth_identities.user_id = users.id AND auth_identities.type = "email_password"', 'left')
+                           ->join('auth_groups_users', 'auth_groups_users.user_id = users.id', 'left')
+                           ->orderBy('users.username', 'ASC')
+                           ->asArray()
+                           ->findAll();
 
+        // Ambil semua OPD dan Bagian dari Simpelgan untuk name lookup
+        $db = \Config\Database::connect('simpelgan');
+        $opdList    = $db->table('master_opd')->where('id_gov', 'P2300001')->get()->getResultArray();
+        $bagianList = $db->table('master_bagian')->where('id_gov', 'P2300001')->get()->getResultArray();
+
+        // Buat map kode => nama untuk pencarian cepat
+        $opdMap    = array_column($opdList, 'nama_opd', 'kode_opd');
+        $bagianMap = [];
+        foreach ($bagianList as $b) {
+            $bagianMap[$b['kode_opd'] . '_' . $b['kode_bagian']] = $b['nama_bagian'];
+        }
+
+        // Enrich setiap user dengan nama OPD dan Bagian
+        foreach ($users as &$user) {
+            $user['nama_opd']    = $opdMap[$user['kode_opd']] ?? '-';
+            $key                 = $user['kode_opd'] . '_' . $user['kode_bagian'];
+            $user['nama_bagian'] = (!empty($user['kode_bagian']) && isset($bagianMap[$key])) ? $bagianMap[$key] : '-';
+        }
+        unset($user);
+
+        $data['users'] = $users;
         return view('users/index', $data);
     }
 
