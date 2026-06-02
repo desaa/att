@@ -1,3 +1,19 @@
-## Role Admin
-1. Modul Input Manual, setelah buka kamera, button untuk ambil gambar tidak tampil
-2. Waktu kunjungan seharusnya 13:22. Di data tertulis 06:21. Timezone gunakan Asia/Jakarta jika masalahnya di Timezone
+Pisahkan untuk konfigurasi database untuk koneksi ke database simpelgan agar memudahkan jika akan production dan berbeda server.
+
+## Role Superadmin
+1. Menu QR tamu umum : ditambahkan Option Subbidang/Subbagian. Namun Option Bidang/bagian dan Subbagian/Subbidang optional, tidak wajib dipilih.
+
+2. Menu Manajemen Agenda : ditambahkan Option Subbidang/Subbagian. Namun Option Bidang/bagian dan Subbagian/Subbidang optional, tidak wajib dipilih.
+
+3. Menu manajemen user. Terdapat error saat akan "Edit" :
+http://localhost:8081/users/edit/2
+
+ Cannot use object of type CodeIgniter\Shield\Entities\User as array search →
+
+ APPPATH\Controllers\Users.php at line 94
+
+4. Menu OPD & Bagian tidak diperlukan karena sudah dihandle oleh aplikasi SIMPELGAN.
+
+5. Menu Master pegawai tidak diperlukan karena sudah dihandle oleh aplikasi SIMPELGAN.
+
+6. sesuaikan juga untuk audit log jika memang ada yang perlu disesuaikan.

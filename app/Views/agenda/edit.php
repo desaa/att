@@ -158,7 +158,7 @@
                         }
                     },
                     error: function() {
-                        toastr.error('Gagal mengambil data Bagian.');
+                        showAppToast('error', 'Gagal mengambil data Bagian.');
                     }
                 });
             } else {
@@ -195,7 +195,7 @@
                         }
                     },
                     error: function() {
-                        toastr.error('Gagal mengambil data Subbagian.');
+                        showAppToast('error', 'Gagal mengambil data Subbagian.');
                     }
                 });
             } else {

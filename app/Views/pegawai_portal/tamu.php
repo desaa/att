@@ -7,7 +7,7 @@
     <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h2 class="fw-bold text-dark mb-1">Daftar Tamu</h2>
-            <p class="text-secondary mb-0">Daftar tamu yang ditujukan kepada Anda.</p>
+            <p class="text-secondary mb-0">Daftar tamu yang ditujukan kepada Anda dan tamu OPD yang belum memiliki pegawai tujuan.</p>
         </div>
     </div>
 </div>
@@ -77,6 +77,9 @@
                             <td>
                                 <div class="fw-semibold"><?= esc($tamu['nama_tamu']) ?></div>
                                 <div class="small text-secondary"><?= esc($tamu['no_hp'] ?? '-') ?></div>
+                                <?php if (empty($tamu['id_pegawai_tujuan'])): ?>
+                                    <span class="badge rounded-pill bg-info-subtle text-info-emphasis mt-1">Belum ada pegawai tujuan</span>
+                                <?php endif; ?>
                             </td>
                             <td><?= esc($tamu['instansi']) ?></td>
                             <td>
@@ -94,7 +97,7 @@
                                         <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="d-inline confirm-form">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                                                <i class="bi bi-check-lg me-1"></i> Terima
+                                                <i class="bi bi-check-lg me-1"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima' : 'Terima' ?>
                                             </button>
                                         </form>
                                     <?php endif; ?>

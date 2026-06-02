@@ -53,7 +53,7 @@
                         <select class="form-select form-select-sm select2-enable" name="pegawai_id" id="pegawai_id" style="width: 100%;">
                             <option value="">-- Semua Pegawai --</option>
                             <?php foreach ($pegawais as $p): ?>
-                                <option value="<?= esc($p['id']) ?>" <?= (int)$filters['pegawai_id'] === (int)$p['id'] ? 'selected' : '' ?>><?= esc($p['nama']) ?></option>
+                                <option value="<?= esc($p['id']) ?>" <?= (string) $filters['pegawai_id'] === (string) $p['id'] ? 'selected' : '' ?>><?= esc($p['nama']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

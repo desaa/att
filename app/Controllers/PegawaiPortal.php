@@ -9,55 +9,88 @@ class PegawaiPortal extends BaseController
 {
     protected $pegawaiId;
     protected $pegawaiData;
+    protected $pegawaiKodeOpd;
 
     public function __construct()
     {
         $this->pegawaiId = session()->get('pegawai_id');
+        $this->pegawaiKodeOpd = session()->get('pegawai_kode_opd');
+    }
+
+    private function applyPegawaiTamuScope($query)
+    {
+        return $query->groupStart()
+                     ->where('buku_tamu.id_pegawai_tujuan', $this->pegawaiId)
+                     ->orGroupStart()
+                         ->where('buku_tamu.kode_opd', $this->pegawaiKodeOpd)
+                         ->groupStart()
+                             ->where('buku_tamu.id_pegawai_tujuan', null)
+                             ->orWhere('buku_tamu.id_pegawai_tujuan', '')
+                         ->groupEnd()
+                     ->groupEnd()
+                 ->groupEnd();
+    }
+
+    private function canAccessTamu(array $tamu): bool
+    {
+        return $tamu['id_pegawai_tujuan'] == $this->pegawaiId || $this->canClaimTamu($tamu);
+    }
+
+    private function canClaimTamu(array $tamu): bool
+    {
+        return empty($tamu['id_pegawai_tujuan']) && $tamu['kode_opd'] == $this->pegawaiKodeOpd;
+    }
+
+    private function countScopedGuests(?string $status = null, ?string $start = null, ?string $end = null): int
+    {
+        $bukuTamuModel = new BukuTamuModel();
+        $query = $bukuTamuModel;
+        $this->applyPegawaiTamuScope($query);
+
+        if ($status) {
+            $query->where('status_kunjungan', $status);
+        }
+        if ($start) {
+            $query->where('waktu_datang >=', $start);
+        }
+        if ($end) {
+            $query->where('waktu_datang <=', $end);
+        }
+
+        return $query->countAllResults();
     }
 
     public function dashboard()
     {
         $bukuTamuModel = new BukuTamuModel();
-        $pegawaiId = $this->pegawaiId;
 
         // Today
         $todayStart = date('Y-m-d 00:00:00');
         $todayEnd   = date('Y-m-d 23:59:59');
 
-        // Stats: Tamu hari ini (untuk pegawai ini)
-        $totalToday = $bukuTamuModel->where('id_pegawai_tujuan', $pegawaiId)
-                                     ->where('waktu_datang >=', $todayStart)
-                                     ->where('waktu_datang <=', $todayEnd)
-                                     ->countAllResults(false);
+        // Stats: own guests plus unassigned guests in the same OPD.
+        $totalToday = $this->countScopedGuests(null, $todayStart, $todayEnd);
 
         // Stats: Menunggu verifikasi
-        $totalPending = $bukuTamuModel->where('id_pegawai_tujuan', $pegawaiId)
-                                       ->where('status_kunjungan', 'menunggu')
-                                       ->countAllResults(false);
+        $totalPending = $this->countScopedGuests('menunggu');
 
         // Stats: Sedang berlangsung
-        $totalOngoing = $bukuTamuModel->where('id_pegawai_tujuan', $pegawaiId)
-                                       ->where('status_kunjungan', 'berlangsung')
-                                       ->countAllResults(false);
+        $totalOngoing = $this->countScopedGuests('berlangsung');
 
         // Stats: Selesai bulan ini
         $monthStart = date('Y-m-01 00:00:00');
         $monthEnd   = date('Y-m-t 23:59:59');
-        $totalCompleted = $bukuTamuModel->where('id_pegawai_tujuan', $pegawaiId)
-                                         ->where('status_kunjungan', 'selesai')
-                                         ->where('waktu_datang >=', $monthStart)
-                                         ->where('waktu_datang <=', $monthEnd)
-                                         ->countAllResults(false);
+        $totalCompleted = $this->countScopedGuests('selesai', $monthStart, $monthEnd);
 
         // Recent guests (last 5 pending + ongoing)
-        $recentGuests = $bukuTamuModel->select('buku_tamu.*, opd.nama_opd, bagian.nama_bagian')
-                                       ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                                       ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
-                                       ->where('buku_tamu.id_pegawai_tujuan', $pegawaiId)
-                                       ->whereIn('buku_tamu.status_kunjungan', ['menunggu', 'berlangsung'])
-                                       ->orderBy('buku_tamu.waktu_datang', 'DESC')
-                                       ->limit(5)
-                                       ->findAll();
+        $recentGuestsQuery = $bukuTamuModel->select('buku_tamu.*, opd.nama_opd, bagian.nama_bagian')
+                                           ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
+                                           ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
+                                           ->whereIn('buku_tamu.status_kunjungan', ['menunggu', 'berlangsung']);
+        $this->applyPegawaiTamuScope($recentGuestsQuery);
+        $recentGuests = $recentGuestsQuery->orderBy('buku_tamu.waktu_datang', 'DESC')
+                                          ->limit(5)
+                                          ->findAll();
 
         // Trend data (7 days)
         $trendLabels = [];
@@ -66,10 +99,7 @@ class PegawaiPortal extends BaseController
             $date = date('Y-m-d', strtotime("-$i days"));
             $trendLabels[] = date('d M', strtotime($date));
 
-            $count = $bukuTamuModel->where('id_pegawai_tujuan', $pegawaiId)
-                                    ->where('waktu_datang >=', $date . ' 00:00:00')
-                                    ->where('waktu_datang <=', $date . ' 23:59:59')
-                                    ->countAllResults();
+            $count = $this->countScopedGuests(null, $date . ' 00:00:00', $date . ' 23:59:59');
             $trendData[] = $count;
         }
 
@@ -87,15 +117,13 @@ class PegawaiPortal extends BaseController
     public function tamu()
     {
         $bukuTamuModel = new BukuTamuModel();
-        $pegawaiId = $this->pegawaiId;
-
         // Filter
         $status = $this->request->getGet('status') ?: 'menunggu';
 
         $query = $bukuTamuModel->select('buku_tamu.*, opd.nama_opd, bagian.nama_bagian')
-                                ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                                ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
-                                ->where('buku_tamu.id_pegawai_tujuan', $pegawaiId);
+                                ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
+                                ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left');
+        $this->applyPegawaiTamuScope($query);
 
         if ($status !== 'semua') {
             $query->where('buku_tamu.status_kunjungan', $status);
@@ -112,8 +140,8 @@ class PegawaiPortal extends BaseController
         $bukuTamuModel = new BukuTamuModel();
 
         $tamu = $bukuTamuModel->select('buku_tamu.*, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
-                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                               ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
+                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
+                               ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
                                ->join('subbagian', 'subbagian.kode_opd = buku_tamu.kode_opd AND subbagian.kode_bagian = buku_tamu.kode_bagian AND subbagian.kode_subbagian = buku_tamu.kode_subbagian', 'left')
                                ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left')
                                ->find($id);
@@ -122,8 +150,8 @@ class PegawaiPortal extends BaseController
             return redirect()->to('pegawai-portal/tamu')->with('error', 'Data tamu tidak ditemukan.');
         }
 
-        // Access check: only tamu for this pegawai
-        if ($tamu['id_pegawai_tujuan'] != $this->pegawaiId) {
+        // Access check: own guests or unassigned guests in the same OPD.
+        if (!$this->canAccessTamu($tamu)) {
             return redirect()->to('pegawai-portal/tamu')->with('error', 'Anda tidak memiliki akses ke data tamu ini.');
         }
 
@@ -141,8 +169,8 @@ class PegawaiPortal extends BaseController
             return redirect()->to('pegawai-portal/tamu')->with('error', 'Data tamu tidak ditemukan.');
         }
 
-        // Access check
-        if ($tamu['id_pegawai_tujuan'] != $this->pegawaiId) {
+        // Access check: own guests or unassigned guests in the same OPD.
+        if (!$this->canAccessTamu($tamu)) {
             return redirect()->to('pegawai-portal/tamu')->with('error', 'Anda tidak memiliki akses.');
         }
 
@@ -150,8 +178,13 @@ class PegawaiPortal extends BaseController
             return redirect()->to('pegawai-portal/tamu')->with('error', 'Tamu ini sudah bukan berstatus menunggu.');
         }
 
-        $bukuTamuModel->update($id, ['status_kunjungan' => 'berlangsung']);
-        log_activity("Pegawai mengkonfirmasi Tamu #{$tamu['no_referensi']} ({$tamu['nama_tamu']})", 'buku_tamu', $id);
+        $updateData = ['status_kunjungan' => 'berlangsung'];
+        if ($this->canClaimTamu($tamu)) {
+            $updateData['id_pegawai_tujuan'] = $this->pegawaiId;
+        }
+
+        $bukuTamuModel->update($id, $updateData);
+        log_activity("Pegawai mengambil dan mengkonfirmasi Tamu #{$tamu['no_referensi']} ({$tamu['nama_tamu']})", 'buku_tamu', $id);
 
         return redirect()->to('pegawai-portal/tamu')->with('success', 'Tamu berhasil dikonfirmasi! Status: Berlangsung.');
     }

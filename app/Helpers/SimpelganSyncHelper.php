@@ -15,6 +15,7 @@ class SimpelganSyncHelper
                                 ->where('id_gov', 'P2300001')
                                 ->get()
                                 ->getResultArray();
+            $opds = self::uniqueRows($opds, ['kode_opd']);
 
             $localDb->table('opd')->truncate();
             if (!empty($opds)) {
@@ -33,6 +34,7 @@ class SimpelganSyncHelper
                                   ->where('id_gov', 'P2300001')
                                   ->get()
                                   ->getResultArray();
+            $bagians = self::uniqueRows($bagians, ['kode_opd', 'kode_bagian']);
 
             $localDb->table('bagian')->truncate();
             if (!empty($bagians)) {
@@ -52,6 +54,7 @@ class SimpelganSyncHelper
                                      ->where('id_gov', 'P2300001')
                                      ->get()
                                      ->getResultArray();
+            $subbagians = self::uniqueRows($subbagians, ['kode_opd', 'kode_bagian', 'kode_subbagian']);
 
             $localDb->table('subbagian')->truncate();
             if (!empty($subbagians)) {
@@ -68,28 +71,21 @@ class SimpelganSyncHelper
             }
 
             // 4. Sync data_pegawai + users + master_jabatan -> pegawai
+            $usersSubquery = '(SELECT nip, id_gov, MAX(password) AS password FROM users GROUP BY nip, id_gov) u';
             $pegawais = $simpelganDb->table('data_pegawai dp')
-                                   ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, dp.flag_aktif, u.password')
-                                   ->join('users u', 'u.nip = dp.nip AND u.id_gov = dp.id_gov', 'left')
-                                   ->where('dp.id_gov', 'P2300001')
-                                   ->get()
+                                   ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, dp.flag_aktif, mj.nama AS jabatan, u.password')
+                                   ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
+                                   ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+                                   ->join($usersSubquery, 'u.nip = dp.nip AND u.id_gov = dp.id_gov', 'left');
+            self::applySimpelganPegawaiScope($pegawais);
+            $pegawais = $pegawais->get()
                                    ->getResultArray();
-
-            // Fetch jabatans to map them
-            $jabatans = $simpelganDb->table('master_jabatan')
-                                   ->where('id_gov', 'P2300001')
-                                   ->get()
-                                   ->getResultArray();
-            $jabatanMap = [];
-            foreach ($jabatans as $j) {
-                $jabatanMap[$j['kode_jabatan']] = $j['nama'];
-            }
+            $pegawais = self::uniqueRows($pegawais, ['nip']);
 
             $localDb->table('pegawai')->truncate();
             if (!empty($pegawais)) {
                 $pegData = [];
                 foreach ($pegawais as $row) {
-                    $jabatanName = isset($jabatanMap[$row['kode_jabatan']]) ? $jabatanMap[$row['kode_jabatan']] : 'Pegawai';
                     $pegData[] = [
                         'id'             => $row['nip'],
                         'nip'            => $row['nip'],
@@ -97,8 +93,8 @@ class SimpelganSyncHelper
                         'kode_opd'       => $row['kode_opd'],
                         'kode_bagian'    => $row['kode_bagian'],
                         'kode_subbagian' => $row['kode_subbagian'] ?: null,
-                        'jabatan'        => $jabatanName,
-                        'status'         => $row['flag_aktif'] === '1' ? 'aktif' : 'nonaktif',
+                        'jabatan'        => $row['jabatan'] ?: 'Pegawai',
+                        'status'         => in_array($row['flag_aktif'], ['1', '2'], true) ? 'aktif' : 'nonaktif',
                         'password'       => $row['password'] ?: null,
                     ];
                 }
@@ -131,25 +127,20 @@ class SimpelganSyncHelper
             $simpelganDb = \Config\Database::connect('simpelgan');
             $localDb     = \Config\Database::connect('default');
 
+            $usersSubquery = '(SELECT nip, id_gov, MAX(password) AS password FROM users GROUP BY nip, id_gov) u';
             $row = $simpelganDb->table('data_pegawai dp')
-                               ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, dp.flag_aktif, u.password')
-                               ->join('users u', 'u.nip = dp.nip AND u.id_gov = dp.id_gov', 'left')
-                               ->where('dp.nip', $nip)
-                               ->where('dp.id_gov', 'P2300001')
-                               ->get()
+                               ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, dp.flag_aktif, mj.nama AS jabatan, u.password')
+                               ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
+                               ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+                               ->join($usersSubquery, 'u.nip = dp.nip AND u.id_gov = dp.id_gov', 'left')
+                               ->where('dp.nip', $nip);
+            self::applySimpelganPegawaiScope($row);
+            $row = $row->get()
                                ->getRowArray();
 
             if (!$row) {
                 return false;
             }
-
-            // Fetch jabatan
-            $jab = $simpelganDb->table('master_jabatan')
-                               ->where('kode_jabatan', $row['kode_jabatan'])
-                               ->where('id_gov', 'P2300001')
-                               ->get()
-                               ->getRowArray();
-            $jabatanName = $jab ? $jab['nama'] : 'Pegawai';
 
             $pegData = [
                 'id'             => $row['nip'],
@@ -158,8 +149,8 @@ class SimpelganSyncHelper
                 'kode_opd'       => $row['kode_opd'],
                 'kode_bagian'    => $row['kode_bagian'],
                 'kode_subbagian' => $row['kode_subbagian'] ?: null,
-                'jabatan'        => $jabatanName,
-                'status'         => $row['flag_aktif'] === '1' ? 'aktif' : 'nonaktif',
+                'jabatan'        => $row['jabatan'] ?: 'Pegawai',
+                'status'         => in_array($row['flag_aktif'], ['1', '2'], true) ? 'aktif' : 'nonaktif',
                 'password'       => $row['password'] ?: null,
             ];
 
@@ -175,4 +166,30 @@ class SimpelganSyncHelper
             return false;
         }
     }
+
+    private static function uniqueRows(array $rows, array $keyColumns): array
+    {
+        $unique = [];
+
+        foreach ($rows as $row) {
+            $keyParts = [];
+            foreach ($keyColumns as $column) {
+                $keyParts[] = (string) ($row[$column] ?? '');
+            }
+
+            $unique[implode('|', $keyParts)] = $row;
+        }
+
+        return array_values($unique);
+    }
+
+    public static function applySimpelganPegawaiScope($builder, string $pegawaiAlias = 'dp', string $jabatanAlias = 'mj')
+    {
+        return $builder->where("{$pegawaiAlias}.id_gov", 'P2300001')
+                       ->whereNotIn("{$pegawaiAlias}.kode_opd", ['01', '80', 'TOPD'])
+                       ->whereIn("{$pegawaiAlias}.flag_aktif", ['1', '2'])
+                       ->whereIn("{$pegawaiAlias}.status", ['1', '2', '3', '4'])
+                       ->whereIn("{$jabatanAlias}.level_user", ['5', '7', '9', '10']);
+    }
+
 }

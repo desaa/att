@@ -87,7 +87,7 @@
                         <button type="button" class="btn btn-outline-primary" id="btn-cari-pegawai"><i class="bi bi-search"></i> Cari</button>
                     </div>
                     <div class="invalid-feedback" id="nik-error">NIP / NIK harus terdiri dari 16 sampai 18 digit.</div>
-                    <small class="text-muted mt-1 d-block">Masukkan NIP/NIK Anda untuk melengkapi nama secara otomatis jika terdaftar di database pegawai.</small>
+                    <small class="text-muted mt-1 d-block">Masukkan NIP 18 digit angka untuk melengkapi nama otomatis jika terdaftar di database pegawai.</small>
                 </div>
 
                 <div class="row mb-3">
@@ -113,8 +113,8 @@
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Ingin Ditemui <span class="text-danger">*</span></label>
-                        <select class="form-select select2-enable" name="id_pegawai_tujuan" id="id_pegawai_tujuan" required style="width: 100%;">
+                        <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Ingin Ditemui <span class="text-secondary small">(Opsional)</span></label>
+                        <select class="form-select select2-enable" name="id_pegawai_tujuan" id="id_pegawai_tujuan" style="width: 100%;">
                             <option value="">-- Pilih Pegawai --</option>
                             <?php foreach ($pegawais as $p): ?>
                                 <option value="<?= esc($p['id']) ?>"><?= esc($p['nama']) ?> (<?= esc($p['jabatan'] ?: 'Pegawai') ?>)</option>
@@ -241,7 +241,7 @@
         // Employee NIP/NIK lookup
         function cariPegawai() {
             let val = $('#nik').val().replace(/\s+/g, '');
-            if (val.length >= 16) {
+            if (/^\d{18}$/.test(val)) {
                 $('#btn-cari-pegawai').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
                 $.ajax({
                     url: '<?= base_url("api/pegawai-by-nip") ?>/' + val,
@@ -251,18 +251,18 @@
                         $('#btn-cari-pegawai').prop('disabled', false).html('<i class="bi bi-search"></i> Cari');
                         if (response.status === 'success') {
                             $('#nama_tamu').val(response.data.nama);
-                            toastr.success('Data pegawai ditemukan: ' + response.data.nama);
+                            showAppToast('success', 'Data pegawai ditemukan: ' + response.data.nama);
                         } else {
-                            toastr.info('NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
+                            showAppToast('info', 'NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
                         }
                     },
                     error: function() {
                         $('#btn-cari-pegawai').prop('disabled', false).html('<i class="bi bi-search"></i> Cari');
-                        toastr.error('Gagal menghubungi server untuk pencarian pegawai.');
+                        showAppToast('error', 'Gagal menghubungi server untuk pencarian pegawai.');
                     }
                 });
             } else {
-                toastr.warning('Masukkan 16 s.d 18 digit NIP / NIK terlebih dahulu.');
+                showAppToast('warning', 'Pencarian database hanya untuk NIP/NIK angka dengan panjang 18 digit.');
             }
         }
 
@@ -272,7 +272,7 @@
 
         $('#nik').on('change blur', function() {
             let val = $(this).val().replace(/\s+/g, '');
-            if (val.length === 16 || val.length === 18) {
+            if (/^\d{18}$/.test(val)) {
                 cariPegawai();
             }
         });
@@ -321,7 +321,6 @@
             let hp = $('#no_hp').val();
             let instansi = $('#instansi').val();
             let alamat = $('#alamat').val();
-            let pegawaiTujuan = $('#id_pegawai_tujuan').val();
             let keperluan = $('#keperluan').val();
 
             if (nik.length < 16 || nik.length > 18) {
@@ -333,7 +332,7 @@
                 $('#nik-error').hide();
             }
 
-            if (!nama || !hp || !instansi || !alamat || !pegawaiTujuan || !keperluan) {
+            if (!nama || !hp || !instansi || !alamat || !keperluan) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Formulir Belum Lengkap',
@@ -391,7 +390,7 @@
                 $(status).removeClass('bg-dark').addClass('bg-success');
             })
             .catch(function(err) {
-                toastr.error('Kamera gagal diakses. Pastikan izin kamera telah diberikan.');
+                showAppToast('error', 'Kamera gagal diakses. Pastikan izin kamera telah diberikan.');
                 $(status).text('Akses kamera gagal / ditolak.');
                 $(status).removeClass('bg-dark').addClass('bg-danger');
             });

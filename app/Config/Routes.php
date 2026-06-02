@@ -37,7 +37,7 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
         $routes->post('store', 'Agenda::store');
         $routes->get('edit/(:num)', 'Agenda::edit/$1');
         $routes->post('update/(:num)', 'Agenda::update/$1');
-        $routes->get('delete/(:num)', 'Agenda::delete/$1');
+        $routes->post('delete/(:num)', 'Agenda::delete/$1');
         $routes->get('complete/(:num)', 'Agenda::complete/$1');
     });
 

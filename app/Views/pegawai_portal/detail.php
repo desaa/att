@@ -127,19 +127,19 @@
             </div>
             <div class="glass-card-body">
                 <?php if ($tamu['status_kunjungan'] === 'menunggu'): ?>
-                    <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST">
+                    <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="swal-confirm-form" data-confirm-title="<?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil tamu ini?' : 'Konfirmasi tamu ini?' ?>" data-confirm-text="<?= empty($tamu['id_pegawai_tujuan']) ? 'Tamu akan menjadi tanggung jawab Anda dan status berubah menjadi berlangsung.' : 'Status kunjungan akan diubah menjadi berlangsung.' ?>">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-success w-100 rounded-pill py-2 mb-2" onclick="return confirm('Konfirmasi tamu ini?')">
-                            <i class="bi bi-check-lg me-2"></i> Terima Tamu
+                        <button type="submit" class="btn btn-success w-100 rounded-pill py-2 mb-2">
+                            <i class="bi bi-check-lg me-2"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima Tamu' : 'Terima Tamu' ?>
                         </button>
                     </form>
                 <?php endif; ?>
 
                 <?php if ($tamu['status_kunjungan'] === 'berlangsung'): ?>
-                    <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST">
+                    <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="swal-confirm-form" data-confirm-title="Selesaikan kunjungan?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
                         <?= csrf_field() ?>
                         <input type="hidden" name="status_kunjungan" value="selesai">
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2" onclick="return confirm('Selesaikan kunjungan?')">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2">
                             <i class="bi bi-check-circle me-2"></i> Selesaikan Kunjungan
                         </button>
                     </form>

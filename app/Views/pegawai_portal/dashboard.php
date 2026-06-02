@@ -6,7 +6,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <h2 class="fw-bold text-dark">Dashboard Pegawai</h2>
-        <p class="text-secondary mb-0">Selamat datang, <strong><?= esc(session()->get('pegawai_nama')) ?></strong>. Berikut ringkasan kunjungan tamu untuk Anda.</p>
+        <p class="text-secondary mb-0">Selamat datang, <strong><?= esc(session()->get('pegawai_nama')) ?></strong>. Berikut ringkasan kunjungan tamu untuk Anda dan tamu OPD yang belum memiliki pegawai tujuan.</p>
     </div>
 </div>
 
@@ -124,6 +124,9 @@
                                     <td>
                                         <div class="fw-semibold"><?= esc($tamu['nama_tamu']) ?></div>
                                         <div class="small text-secondary"><?= esc($tamu['instansi']) ?></div>
+                                        <?php if (empty($tamu['id_pegawai_tujuan'])): ?>
+                                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis mt-1">Belum ada pegawai tujuan</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <div><?= date('d M Y', strtotime($tamu['waktu_datang'])) ?></div>
@@ -136,17 +139,17 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <?php if ($tamu['status_kunjungan'] === 'menunggu'): ?>
-                                            <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="d-inline">
+                                            <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Konfirmasi tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi berlangsung.">
                                                 <?= csrf_field() ?>
-                                                <button type="submit" class="btn btn-sm btn-success btn-icon" title="Konfirmasi" onclick="return confirm('Konfirmasi tamu ini?')">
-                                                    <i class="bi bi-check-lg"></i> Terima
+                                                <button type="submit" class="btn btn-sm btn-success btn-icon" title="Konfirmasi">
+                                                    <i class="bi bi-check-lg"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima' : 'Terima' ?>
                                                 </button>
                                             </form>
                                         <?php elseif ($tamu['status_kunjungan'] === 'berlangsung'): ?>
-                                            <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="d-inline">
+                                            <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Selesaikan kunjungan tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="status_kunjungan" value="selesai">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" title="Selesaikan" onclick="return confirm('Selesaikan kunjungan tamu ini?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" title="Selesaikan">
                                                     <i class="bi bi-check-circle"></i> Selesai
                                                 </button>
                                             </form>

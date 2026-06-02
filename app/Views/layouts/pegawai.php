@@ -17,8 +17,6 @@
     <!-- DataTables Bootstrap 5 CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
     
@@ -128,8 +126,6 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Toastr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
     <!-- Chart JS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
@@ -140,23 +136,48 @@
             sidebar.classList.toggle('show');
         }
         
-        // Toastr settings
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-        };
+        function showAppToast(icon, title) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+        }
 
         // Flash message handling
         <?php if (session()->getFlashdata('success')): ?>
-            toastr.success("<?= esc(session()->getFlashdata('success')) ?>");
+            showAppToast('success', <?= json_encode(session()->getFlashdata('success')) ?>);
         <?php endif; ?>
         <?php if (session()->getFlashdata('error')): ?>
-            toastr.error("<?= esc(session()->getFlashdata('error')) ?>");
+            showAppToast('error', <?= json_encode(session()->getFlashdata('error')) ?>);
         <?php endif; ?>
+
+        document.addEventListener('submit', function(event) {
+            const form = event.target.closest('.swal-confirm-form');
+            if (!form || form.dataset.confirmed === 'true') {
+                return;
+            }
+
+            event.preventDefault();
+            Swal.fire({
+                icon: 'question',
+                title: form.dataset.confirmTitle || 'Konfirmasi aksi?',
+                text: form.dataset.confirmText || 'Aksi ini akan diproses.',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, lanjutkan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.dataset.confirmed = 'true';
+                    form.submit();
+                }
+            });
+        });
     </script>
     
     <?= $this->renderSection('scripts') ?>

@@ -121,7 +121,7 @@
                         },
                         error: function() {
                             bagianSelect.prop('disabled', false);
-                            toastr.error('Gagal mengambil data Bagian.');
+                            showAppToast('error', 'Gagal mengambil data Bagian.');
                         }
                     });
                 } else {
@@ -159,7 +159,7 @@
                         },
                         error: function() {
                             subSelect.prop('disabled', false);
-                            toastr.error('Gagal mengambil data Subbagian.');
+                            showAppToast('error', 'Gagal mengambil data Subbagian.');
                         }
                     });
                 }

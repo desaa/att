@@ -132,18 +132,18 @@
                         $('#btn-cari-pegawai').prop('disabled', false).html('<i class="bi bi-search"></i> Cari');
                         if (response.status === 'success') {
                             $('#nama_tamu').val(response.data.nama);
-                            toastr.success('Data pegawai ditemukan: ' + response.data.nama);
+                            showAppToast('success', 'Data pegawai ditemukan: ' + response.data.nama);
                         } else {
-                            toastr.info('NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
+                            showAppToast('info', 'NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
                         }
                     },
                     error: function() {
                         $('#btn-cari-pegawai').prop('disabled', false).html('<i class="bi bi-search"></i> Cari');
-                        toastr.error('Gagal menghubungi server untuk pencarian pegawai.');
+                        showAppToast('error', 'Gagal menghubungi server untuk pencarian pegawai.');
                     }
                 });
             } else {
-                toastr.warning('Masukkan 16 s.d 18 digit NIP / NIK terlebih dahulu.');
+                showAppToast('warning', 'Masukkan 16 s.d 18 digit NIP / NIK terlebih dahulu.');
             }
         }
 

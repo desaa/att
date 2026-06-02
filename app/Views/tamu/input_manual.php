@@ -245,7 +245,7 @@
                 status.className = 'position-absolute text-white small p-2 bg-success rounded-bottom bottom-0 start-0 end-0 text-center';
             })
             .catch(function(err) {
-                toastr.error('Kamera gagal diakses. Pastikan izin kamera telah diberikan.');
+                showAppToast('error', 'Kamera gagal diakses. Pastikan izin kamera telah diberikan.');
                 status.innerText = 'Akses kamera gagal / ditolak.';
                 status.className = 'position-absolute text-white small p-2 bg-danger rounded-bottom bottom-0 start-0 end-0 text-center';
             });

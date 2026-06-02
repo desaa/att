@@ -155,10 +155,9 @@ class Tamu extends BaseController
         }
 
         $pegawaiModel = new PegawaiModel();
-        $data['pegawais'] = $pegawaiModel->where('kode_opd', $user->kode_opd)
-                                        ->where('status', 'aktif')
-                                        ->orderBy('nama', 'ASC')
-                                        ->findAll();
+        $pegBuilder = $pegawaiModel->where('kode_opd', $user->kode_opd)
+                                   ->where('status', 'aktif');
+        $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
 
         // Fetch active agendas for this OPD
         $agendaModel = new AgendaModel();
@@ -186,7 +185,6 @@ class Tamu extends BaseController
             'no_hp'             => 'required|max_length[50]',
             'alamat'            => 'required',
             'keperluan'         => 'required',
-            'id_pegawai_tujuan' => 'required',
         ];
 
         if (!$this->validate($rules)) {
@@ -386,8 +384,8 @@ class Tamu extends BaseController
         $bukuTamuModel = new BukuTamuModel();
         $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
-                              ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
+                              ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
+                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
                               ->where('no_referensi', $noReferensi)
                               ->first();
 
@@ -528,29 +526,20 @@ class Tamu extends BaseController
         }
         
         // Fetch active employees under these department, section, and sub-section active filters
-        $builder = $db->table('data_pegawai')
-                      ->select('nip as id, nama_lengkap as nama, kode_opd, kode_bagian, kode_subbagian, kode_jabatan')
-                      ->where('id_gov', 'P2300001')
-                      ->where('kode_opd', $kodeOpd)
-                      ->where('flag_aktif', '1');
+        $builder = $db->table('data_pegawai dp')
+                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, mj.nama AS jabatan')
+                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
+                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+                      ->where('dp.kode_opd', $kodeOpd);
+        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
         if ($kodeBagian) {
-            $builder->where('kode_bagian', $kodeBagian);
+            $builder->where('dp.kode_bagian', $kodeBagian);
         }
         if ($kodeSubbagian) {
-            $builder->where('kode_subbagian', $kodeSubbagian);
+            $builder->where('dp.kode_subbagian', $kodeSubbagian);
         }
         
-        $pegawais = $builder->orderBy('nama_lengkap', 'ASC')->get()->getResultArray();
-        
-        // Map jabatan names
-        $jabatans = $db->table('master_jabatan')->where('id_gov', 'P2300001')->get()->getResultArray();
-        $jabMap = [];
-        foreach ($jabatans as $j) {
-            $jabMap[$j['kode_jabatan']] = $j['nama'];
-        }
-        foreach ($pegawais as &$p) {
-            $p['jabatan'] = isset($jabMap[$p['kode_jabatan']]) ? $jabMap[$p['kode_jabatan']] : 'Pegawai';
-        }
+        $pegawais = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
                                  
         return view('tamu/register_umum', [
             'opd'            => $opd,
@@ -583,7 +572,6 @@ class Tamu extends BaseController
             'no_hp'             => 'required|max_length[50]',
             'alamat'            => 'required',
             'keperluan'         => 'required',
-            'id_pegawai_tujuan' => 'required',
         ];
         
         if (!$this->validate($rules)) {
@@ -636,8 +624,10 @@ class Tamu extends BaseController
         }
         
         // Dynamically sync target employee to default database to support local table joins in guest book screens
-        $idPegawaiTujuan = $this->request->getPost('id_pegawai_tujuan');
-        \App\Helpers\SimpelganSyncHelper::syncSinglePegawai($idPegawaiTujuan);
+        $idPegawaiTujuan = $this->request->getPost('id_pegawai_tujuan') ?: null;
+        if ($idPegawaiTujuan) {
+            \App\Helpers\SimpelganSyncHelper::syncSinglePegawai($idPegawaiTujuan);
+        }
         
         $bukuTamuModel = new BukuTamuModel();
         

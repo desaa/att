@@ -226,9 +226,9 @@
         urlInput.setSelectionRange(0, 99999); // For mobile devices
         
         navigator.clipboard.writeText(urlInput.value).then(() => {
-            toastr.success('Tautan berhasil disalin!');
+            showAppToast('success', 'Tautan berhasil disalin!');
         }, () => {
-            toastr.error('Gagal menyalin tautan.');
+            showAppToast('error', 'Gagal menyalin tautan.');
         });
     }
 

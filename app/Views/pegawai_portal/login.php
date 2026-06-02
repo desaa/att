@@ -14,8 +14,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
     
@@ -212,24 +210,27 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Toastr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-        };
+        function showAppToast(icon, title) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+        }
 
         <?php if (session()->getFlashdata('success')): ?>
-            toastr.success("<?= esc(session()->getFlashdata('success')) ?>");
+            showAppToast('success', <?= json_encode(session()->getFlashdata('success')) ?>);
         <?php endif; ?>
         <?php if (session()->getFlashdata('error')): ?>
-            toastr.error("<?= esc(session()->getFlashdata('error')) ?>");
+            showAppToast('error', <?= json_encode(session()->getFlashdata('error')) ?>);
         <?php endif; ?>
 
         // Toggle password visibility

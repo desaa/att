@@ -155,7 +155,7 @@
                         }
                     },
                     error: function() {
-                        toastr.error('Gagal mengambil data Bagian.');
+                        showAppToast('error', 'Gagal mengambil data Bagian.');
                     }
                 });
             } else {
@@ -186,7 +186,7 @@
                         }
                     },
                     error: function() {
-                        toastr.error('Gagal mengambil data Subbagian.');
+                        showAppToast('error', 'Gagal mengambil data Subbagian.');
                     }
                 });
             } else {
@@ -201,9 +201,9 @@
         urlInput.setSelectionRange(0, 99999);
         
         navigator.clipboard.writeText(urlInput.value).then(() => {
-            toastr.success('Tautan registrasi berhasil disalin!');
+            showAppToast('success', 'Tautan registrasi berhasil disalin!');
         }, () => {
-            toastr.error('Gagal menyalin tautan.');
+            showAppToast('error', 'Gagal menyalin tautan.');
         });
     }
 

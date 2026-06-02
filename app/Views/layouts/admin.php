@@ -22,8 +22,6 @@
     <!-- Select2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
     
@@ -189,8 +187,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Toastr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
     <!-- Signature Pad JS -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <!-- Inputmask JS -->
@@ -207,22 +203,24 @@
             sidebar.classList.toggle('show');
         }
         
-        // Toastr settings
-        toastr.options = {
-            "closeButton": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-        };
+        function showAppToast(icon, title) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+        }
 
         // Flash message handling
         <?php if (session()->getFlashdata('success')): ?>
-            toastr.success("<?= esc(session()->getFlashdata('success')) ?>");
+            showAppToast('success', <?= json_encode(session()->getFlashdata('success')) ?>);
         <?php endif; ?>
         <?php if (session()->getFlashdata('error')): ?>
-            toastr.error("<?= esc(session()->getFlashdata('error')) ?>");
+            showAppToast('error', <?= json_encode(session()->getFlashdata('error')) ?>);
         <?php endif; ?>
     </script>
     
