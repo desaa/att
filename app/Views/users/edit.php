@@ -14,7 +14,7 @@
     <div class="col-12 col-lg-8">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('users/update/' . $user->id) ?>" method="POST" id="usersForm">
+                <form action="<?= base_url('users/update/' . encode_id($user->id)) ?>" method="POST" id="usersForm">
                     <?= csrf_field() ?>
                     
                     <div class="row mb-3">

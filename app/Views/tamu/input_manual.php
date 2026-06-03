@@ -65,8 +65,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Dituju <span class="text-danger">*</span></label>
-                        <select class="form-select select2-enable" name="id_pegawai_tujuan" id="id_pegawai_tujuan" required style="width: 100%">
+                        <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Dituju <span class="text-secondary small">(Opsional)</span></label>
+                        <select class="form-select select2-enable" name="id_pegawai_tujuan" id="id_pegawai_tujuan" style="width: 100%">
                             <option value="">-- Pilih Pegawai --</option>
                             <?php foreach ($pegawais as $p): ?>
                                 <option value="<?= esc($p['id']) ?>"><?= esc($p['nama']) ?> (<?= esc($p['jabatan']) ?>)</option>
@@ -82,7 +82,7 @@
                     <div class="mb-4">
                         <label for="dokumen_pendukung" class="form-label fw-semibold">Unggah Dokumen Lampiran (Opsional)</label>
                         <input class="form-control" type="file" id="dokumen_pendukung" name="dokumen_pendukung" accept=".jpg,.png,.pdf">
-                        <div class="small text-muted mt-1">Unggah Surat Tugas, Undangan, atau Dokumen pendukung lain (Format: PDF, JPG, PNG).</div>
+                        <div class="small text-muted mt-1">Unggah Surat Tugas, Undangan, atau Dokumen pendukung lain (Format: PDF, JPG, PNG - Max 1MB).</div>
                     </div>
 
                     <h5 class="fw-bold text-indigo mb-3 border-bottom pb-2">Dokumentasi &amp; Tanda Tangan</h5>
@@ -177,6 +177,36 @@
                 penColor: 'rgb(0, 0, 0)'
             });
         }, 300);
+
+        // Employee NIP/NIK lookup
+        function cariPegawai() {
+            let val = $('#nik').val().replace(/_|\s+/g, ''); // Hapus spasi dan underscore (masking)
+            if (/^\d{18}$/.test(val)) {
+                $.ajax({
+                    url: '<?= base_url("api/pegawai-by-nip") ?>/' + val,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#nama_tamu').val(response.data.nama);
+                            if (response.data.instansi) {
+                                $('#instansi').val(response.data.instansi);
+                            }
+                            if (typeof showAppToast === 'function') {
+                                showAppToast('success', 'Data pegawai ditemukan: ' + response.data.nama);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        $('#nik').on('input change blur', function() {
+            let val = $(this).val().replace(/_|\s+/g, '');
+            if (val.length === 18 && /^\d{18}$/.test(val)) {
+                cariPegawai();
+            }
+        });
 
         // Form Submit Handler
         $('#manualGuestForm').on('submit', function(e) {

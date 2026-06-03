@@ -21,18 +21,14 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
     // Data Tamu CRUD and tracking
     $routes->group('tamu', static function ($routes) {
         $routes->get('', 'Tamu::index');
-        $routes->get('detail/(:num)', 'Tamu::detail/$1');
-        $routes->post('update-status/(:num)', 'Tamu::updateStatus/$1');
+        $routes->get('detail/(:any)', 'Tamu::detail/$1');
+        $routes->post('update-status/(:any)', 'Tamu::updateStatus/$1');
         $routes->get('qr-umum', 'Tamu::qrUmum');
         
         // Manual input form for Admin
         $routes->get('input', 'Tamu::inputManual');
         $routes->post('input', 'Tamu::storeManual');
 
-        // ✅ Serve file upload (foto/ttd ada di luar public/, diakses via proxy)
-        // URL: tamu/uploads/{type}/{year}/{month}/{filename}
-        // type 'file' (dokumen) hanya bisa diakses user yang login (dicek di controller)
-        $routes->get('uploads/(:segment)/(:segment)/(:segment)/(:segment)', 'Tamu::serveUpload/$1/$2/$3/$4');
     });
 
     // Agenda CRUD
@@ -40,10 +36,10 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
         $routes->get('', 'Agenda::index');
         $routes->get('create', 'Agenda::create');
         $routes->post('store', 'Agenda::store');
-        $routes->get('edit/(:num)', 'Agenda::edit/$1');
-        $routes->post('update/(:num)', 'Agenda::update/$1');
-        $routes->post('delete/(:num)', 'Agenda::delete/$1');
-        $routes->get('complete/(:num)', 'Agenda::complete/$1');
+        $routes->get('edit/(:any)', 'Agenda::edit/$1');
+        $routes->post('update/(:any)', 'Agenda::update/$1');
+        $routes->post('delete/(:any)', 'Agenda::delete/$1');
+        $routes->get('complete/(:any)', 'Agenda::complete/$1');
     });
 
     // Laporan & Export
@@ -58,11 +54,11 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
         $routes->get('', 'Pegawai::index');
         $routes->get('create', 'Pegawai::create');
         $routes->post('store', 'Pegawai::store');
-        $routes->get('edit/(:num)', 'Pegawai::edit/$1');
-        $routes->post('update/(:num)', 'Pegawai::update/$1');
-        $routes->post('delete/(:num)', 'Pegawai::delete/$1');
-        $routes->get('set-password/(:num)', 'Pegawai::setPassword/$1');
-        $routes->post('save-password/(:num)', 'Pegawai::savePassword/$1');
+        $routes->get('edit/(:any)', 'Pegawai::edit/$1');
+        $routes->post('update/(:any)', 'Pegawai::update/$1');
+        $routes->post('delete/(:any)', 'Pegawai::delete/$1');
+        $routes->get('set-password/(:any)', 'Pegawai::setPassword/$1');
+        $routes->post('save-password/(:any)', 'Pegawai::savePassword/$1');
     });
 
     // Superadmin-only routes
@@ -73,11 +69,11 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
             $routes->get('', 'Users::index');
             $routes->get('create', 'Users::create');
             $routes->post('store', 'Users::store');
-            $routes->get('edit/(:num)', 'Users::edit/$1');
-            $routes->post('update/(:num)', 'Users::update/$1');
-            $routes->get('reset-password/(:num)', 'Users::resetPassword/$1');
-            $routes->post('reset-password/(:num)', 'Users::saveResetPassword/$1');
-            $routes->get('toggle-status/(:num)', 'Users::toggleStatus/$1');
+            $routes->get('edit/(:any)', 'Users::edit/$1');
+            $routes->post('update/(:any)', 'Users::update/$1');
+            $routes->get('reset-password/(:any)', 'Users::resetPassword/$1');
+            $routes->post('reset-password/(:any)', 'Users::saveResetPassword/$1');
+            $routes->get('toggle-status/(:any)', 'Users::toggleStatus/$1');
         });
 
         // Master Data OPD, Bagian, Subbagian
@@ -129,9 +125,9 @@ $routes->group('pegawai-portal', ['filter' => 'pegawai-auth'], static function (
     $routes->get('ganti-password', 'PegawaiPortal::changePassword');
     $routes->post('ganti-password', 'PegawaiPortal::saveChangePassword');
     $routes->get('tamu', 'PegawaiPortal::tamu');
-    $routes->get('tamu/detail/(:num)', 'PegawaiPortal::detail/$1');
-    $routes->post('tamu/konfirmasi/(:num)', 'PegawaiPortal::konfirmasiTamu/$1');
-    $routes->post('tamu/update-status/(:num)', 'PegawaiPortal::updateStatus/$1');
+    $routes->get('tamu/detail/(:any)', 'PegawaiPortal::detail/$1');
+    $routes->post('tamu/konfirmasi/(:any)', 'PegawaiPortal::konfirmasiTamu/$1');
+    $routes->post('tamu/update-status/(:any)', 'PegawaiPortal::updateStatus/$1');
 });
 
 // AJAX APIs (Searchable selects for employees/sections)

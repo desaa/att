@@ -114,9 +114,11 @@ class Api extends BaseController
     {
         $db = \Config\Database::connect('simpelgan');
         $pegawai = $db->table('data_pegawai dp')
-                      ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, mo.nama_opd')
+                      ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, mo.nama_opd, mb.nama_bagian, ms.nama_subbagian')
                       ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
                       ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+                      ->join('master_bagian mb', 'mb.kode_bagian = dp.kode_bagian AND mb.kode_opd = dp.kode_opd AND mb.id_gov = dp.id_gov', 'left')
+                      ->join('master_subbagian ms', 'ms.kode_subbagian = dp.kode_subbagian AND ms.kode_bagian = dp.kode_bagian AND ms.kode_opd = dp.kode_opd AND ms.id_gov = dp.id_gov', 'left')
                       ->where('dp.nip', $nip);
         \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($pegawai);
         $pegawai = $pegawai->get()
@@ -125,8 +127,10 @@ class Api extends BaseController
             return $this->response->setJSON([
                 'status' => 'success',
                 'data'   => [
-                    'nama'     => $pegawai['nama_lengkap'],
-                    'instansi' => $pegawai['nama_opd'] ?? ''
+                    'nama'      => $pegawai['nama_lengkap'],
+                    'instansi'  => $pegawai['nama_opd'] ?? '',
+                    'bidang'    => $pegawai['nama_bagian'] ?? '',
+                    'subbidang' => $pegawai['nama_subbagian'] ?? ''
                 ]
             ]);
         }

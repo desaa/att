@@ -14,7 +14,7 @@
     <div class="col-12 col-lg-8">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('agenda/update/' . $agenda['id_agenda']) ?>" method="POST" id="agendaForm">
+                <form action="<?= base_url('agenda/update/' . encode_id($agenda['id_agenda'])) ?>" method="POST" id="agendaForm">
                     <?= csrf_field() ?>
                     
                     <div class="mb-3">
@@ -38,20 +38,9 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="lokasi" class="form-label fw-semibold">Lokasi Kegiatan</label>
-                            <input type="text" class="form-control" id="lokasi" name="lokasi" placeholder="Contoh: Aula lt.2 Diskominfo" required value="<?= old('lokasi', $agenda['lokasi']) ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="penanggung_jawab" class="form-label fw-semibold">Penanggung Jawab (PJ)</label>
-                            <select class="form-select select2-enable" id="penanggung_jawab" name="penanggung_jawab" required style="width: 100%">
-                                <option value="">-- Pilih Penanggung Jawab --</option>
-                                <?php foreach ($pegawais as $peg): ?>
-                                    <option value="<?= esc($peg['nama']) ?>" <?= old('penanggung_jawab', $agenda['penanggung_jawab']) === $peg['nama'] ? 'selected' : '' ?>><?= esc($peg['nama']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label for="lokasi" class="form-label fw-semibold">Lokasi Kegiatan</label>
+                        <input type="text" class="form-control" id="lokasi" name="lokasi" placeholder="Contoh: Aula lt.2 Diskominfo" required value="<?= old('lokasi', $agenda['lokasi']) ?>">
                     </div>
 
                     <div class="mb-3">
@@ -97,6 +86,16 @@
                             <option value="">-- Pilih Subbagian (Opsional) --</option>
                             <?php foreach ($subbagians as $row): ?>
                                 <option value="<?= esc($row['kode_subbagian']) ?>" <?= old('kode_subbagian', $agenda['kode_subbagian']) === $row['kode_subbagian'] ? 'selected' : '' ?>><?= esc($row['nama_subbagian']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="penanggung_jawab" class="form-label fw-semibold">Penanggung Jawab (PJ)</label>
+                        <select class="form-select select2-enable" id="penanggung_jawab" name="penanggung_jawab" required style="width: 100%">
+                            <option value="">-- Pilih Penanggung Jawab --</option>
+                            <?php foreach ($pegawais as $peg): ?>
+                                <option value="<?= esc($peg['nama']) ?>" <?= old('penanggung_jawab', $agenda['penanggung_jawab']) === $peg['nama'] ? 'selected' : '' ?>><?= esc($peg['nama']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

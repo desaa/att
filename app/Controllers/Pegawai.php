@@ -41,27 +41,27 @@ class Pegawai extends BaseController
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }
 
-    public function edit($id)
+    public function edit($hash)
     {
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }
 
-    public function update($id)
+    public function update($hash)
     {
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }
 
-    public function delete($id)
+    public function delete($hash)
     {
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }
 
-    public function setPassword($id)
+    public function setPassword($hash)
     {
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }
 
-    public function savePassword($id)
+    public function savePassword($hash)
     {
         return redirect()->to('pegawai')->with('error', 'Fitur ini dinonaktifkan karena data Pegawai dikelola secara terpusat melalui aplikasi Simpelgan.');
     }

@@ -94,7 +94,7 @@
                             <td class="text-end pe-4">
                                 <div class="d-flex gap-1 justify-content-end">
                                     <?php if ($tamu['status_kunjungan'] === 'menunggu'): ?>
-                                        <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="d-inline confirm-form">
+                                        <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . encode_id($tamu['id'])) ?>" method="POST" class="d-inline confirm-form">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
                                                 <i class="bi bi-check-lg me-1"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima' : 'Terima' ?>
@@ -103,7 +103,7 @@
                                     <?php endif; ?>
 
                                     <?php if ($tamu['status_kunjungan'] === 'berlangsung'): ?>
-                                        <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="d-inline selesai-form">
+                                        <form action="<?= base_url('pegawai-portal/tamu/update-status/' . encode_id($tamu['id'])) ?>" method="POST" class="d-inline selesai-form">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="status_kunjungan" value="selesai">
                                             <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3">
@@ -112,7 +112,7 @@
                                         </form>
                                     <?php endif; ?>
 
-                                    <a href="<?= base_url('pegawai-portal/tamu/detail/' . $tamu['id']) ?>" class="btn btn-sm btn-light border rounded-pill px-3">
+                                    <a href="<?= base_url('pegawai-portal/tamu/detail/' . encode_id($tamu['id'])) ?>" class="btn btn-sm btn-light border rounded-pill px-3">
                                         <i class="bi bi-eye me-1"></i> Detail
                                     </a>
                                 </div>

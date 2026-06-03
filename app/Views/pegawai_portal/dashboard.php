@@ -139,14 +139,14 @@
                                     </td>
                                     <td class="text-end pe-4">
                                         <?php if ($tamu['status_kunjungan'] === 'menunggu'): ?>
-                                            <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Konfirmasi tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi berlangsung.">
+                                            <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . encode_id($tamu['id'])) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Konfirmasi tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi berlangsung.">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn btn-sm btn-success btn-icon" title="Konfirmasi">
                                                     <i class="bi bi-check-lg"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima' : 'Terima' ?>
                                                 </button>
                                             </form>
                                         <?php elseif ($tamu['status_kunjungan'] === 'berlangsung'): ?>
-                                            <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Selesaikan kunjungan tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
+                                            <form action="<?= base_url('pegawai-portal/tamu/update-status/' . encode_id($tamu['id'])) ?>" method="POST" class="d-inline swal-confirm-form" data-confirm-title="Selesaikan kunjungan tamu ini?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="status_kunjungan" value="selesai">
                                                 <button type="submit" class="btn btn-sm btn-outline-primary btn-icon" title="Selesaikan">
@@ -154,7 +154,7 @@
                                                 </button>
                                             </form>
                                         <?php endif; ?>
-                                        <a href="<?= base_url('pegawai-portal/tamu/detail/' . $tamu['id']) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail">
+                                        <a href="<?= base_url('pegawai-portal/tamu/detail/' . encode_id($tamu['id'])) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                     </td>

@@ -32,6 +32,11 @@ class Dashboard extends BaseController
                 $tamuBuilder->where('buku_tamu.kode_bagian', $kodeBagian);
                 $agendaBuilder->where('agenda.kode_bagian', $kodeBagian);
             }
+
+            if (!empty($user->kode_subbagian)) {
+                $tamuBuilder->where('buku_tamu.kode_subbagian', $user->kode_subbagian);
+                $agendaBuilder->where('agenda.kode_subbagian', $user->kode_subbagian);
+            }
         }
 
         // 1. Stats - Total Today
@@ -61,11 +66,17 @@ class Dashboard extends BaseController
         $totalPending = $pendingQuery->where('status_kunjungan', 'menunggu')->countAllResults(false);
 
         // 5. Recent Guests list
+        $filterBulan = $this->request->getGet('bulan') ?: date('Y-m');
+        $startFilterDate = $filterBulan . '-01 00:00:00';
+        $endFilterDate = date('Y-m-t 23:59:59', strtotime($startFilterDate));
+
         $recentQuery = clone $tamuBuilder;
         $recentGuests = $recentQuery->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian')
                                     ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                                     ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
                                     ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
+                                    ->where('buku_tamu.waktu_datang >=', $startFilterDate)
+                                    ->where('buku_tamu.waktu_datang <=', $endFilterDate)
                                     ->orderBy('buku_tamu.waktu_datang', 'DESC')
                                     ->limit(5)
                                     ->get()
@@ -119,6 +130,7 @@ class Dashboard extends BaseController
             'opdData'      => $isSuperadmin ? $opdData : [],
             'isSuperadmin' => $isSuperadmin,
             'lastSyncTime' => $lastSyncTime,
+            'filterBulan'  => $filterBulan,
         ]);
     }
 

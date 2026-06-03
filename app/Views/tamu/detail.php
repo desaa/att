@@ -143,7 +143,7 @@
                 <span class="fw-bold text-dark"><i class="bi bi-gear-fill me-2 text-primary"></i>Kontrol Kunjungan</span>
             </div>
             <div class="glass-card-body">
-                <form action="<?= base_url('tamu/update-status/' . $tamu['id']) ?>" method="POST" id="statusForm">
+                <form action="<?= base_url('tamu/update-status/' . encode_id($tamu['id'])) ?>" method="POST" id="statusForm">
                     <?= csrf_field() ?>
                     <div class="mb-3">
                         <label for="status_kunjungan" class="form-label fw-semibold">Ubah Status Kunjungan</label>

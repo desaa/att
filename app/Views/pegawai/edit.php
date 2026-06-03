@@ -14,7 +14,7 @@
     <div class="col-12 col-lg-8">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('pegawai/update/' . $pegawai['id']) ?>" method="POST" id="pegawaiForm">
+                <form action="<?= base_url('pegawai/update/' . encode_id($pegawai['id'])) ?>" method="POST" id="pegawaiForm">
                     <?= csrf_field() ?>
                     
                     <div class="row mb-3">

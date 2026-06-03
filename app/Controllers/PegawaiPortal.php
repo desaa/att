@@ -19,16 +19,15 @@ class PegawaiPortal extends BaseController
 
     private function applyPegawaiTamuScope($query)
     {
-        return $query->groupStart()
-                     ->where('buku_tamu.id_pegawai_tujuan', $this->pegawaiId)
-                     ->orGroupStart()
-                         ->where('buku_tamu.kode_opd', $this->pegawaiKodeOpd)
-                         ->groupStart()
+        return $query->where('buku_tamu.kode_opd', $this->pegawaiKodeOpd)
+                     ->groupStart()
+                         ->where('buku_tamu.id_pegawai_tujuan', $this->pegawaiId)
+                         ->orGroupStart()
                              ->where('buku_tamu.id_pegawai_tujuan', null)
                              ->orWhere('buku_tamu.id_pegawai_tujuan', '')
+                             ->orWhere('buku_tamu.id_pegawai_tujuan', '0')
                          ->groupEnd()
-                     ->groupEnd()
-                 ->groupEnd();
+                     ->groupEnd();
     }
 
     private function canAccessTamu(array $tamu): bool
@@ -135,8 +134,13 @@ class PegawaiPortal extends BaseController
         return view('pegawai_portal/tamu', $data);
     }
 
-    public function detail($id)
+    public function detail($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $bukuTamuModel = new BukuTamuModel();
 
         $tamu = $bukuTamuModel->select('buku_tamu.*, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
@@ -160,8 +164,13 @@ class PegawaiPortal extends BaseController
         return view('pegawai_portal/detail', $data);
     }
 
-    public function konfirmasiTamu($id)
+    public function konfirmasiTamu($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $bukuTamuModel = new BukuTamuModel();
         $tamu = $bukuTamuModel->find($id);
 
@@ -189,8 +198,13 @@ class PegawaiPortal extends BaseController
         return redirect()->to('pegawai-portal/tamu')->with('success', 'Tamu berhasil dikonfirmasi! Status: Berlangsung.');
     }
 
-    public function updateStatus($id)
+    public function updateStatus($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $bukuTamuModel = new BukuTamuModel();
         $tamu = $bukuTamuModel->find($id);
 

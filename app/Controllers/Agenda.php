@@ -26,6 +26,12 @@ class Agenda extends BaseController
 
         if (!$isSuperadmin) {
             $query->where('agenda.kode_opd', $user->kode_opd);
+            if (!empty($user->kode_bagian)) {
+                $query->where('agenda.kode_bagian', $user->kode_bagian);
+            }
+            if (!empty($user->kode_subbagian)) {
+                $query->where('agenda.kode_subbagian', $user->kode_subbagian);
+            }
         }
 
         $data['agendas'] = $query->orderBy('agenda.created_at', 'DESC')->findAll();
@@ -124,8 +130,13 @@ class Agenda extends BaseController
         return redirect()->to('agenda')->with('success', 'Agenda berhasil ditambahkan!');
     }
 
-    public function edit($id)
+    public function edit($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         $agendaModel = new AgendaModel();
@@ -182,8 +193,13 @@ class Agenda extends BaseController
         return view('agenda/edit', $data);
     }
 
-    public function update($id)
+    public function update($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         $agendaModel = new AgendaModel();
@@ -238,8 +254,13 @@ class Agenda extends BaseController
         return redirect()->to('agenda')->with('success', 'Agenda berhasil diperbarui!');
     }
 
-    public function delete($id)
+    public function delete($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         $agendaModel = new AgendaModel();
@@ -263,8 +284,13 @@ class Agenda extends BaseController
         }
     }
 
-    public function complete($id)
+    public function complete($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         

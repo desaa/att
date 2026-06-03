@@ -38,20 +38,9 @@
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="lokasi" class="form-label fw-semibold">Lokasi Kegiatan</label>
-                            <input type="text" class="form-control" id="lokasi" name="lokasi" placeholder="Contoh: Aula lt.2 Diskominfo" required value="<?= old('lokasi') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="penanggung_jawab" class="form-label fw-semibold">Penanggung Jawab (PJ)</label>
-                            <select class="form-select select2-enable" id="penanggung_jawab" name="penanggung_jawab" required style="width: 100%">
-                                <option value="">-- Pilih Penanggung Jawab --</option>
-                                <?php foreach ($pegawais as $peg): ?>
-                                    <option value="<?= esc($peg['nama']) ?>" <?= old('penanggung_jawab') === $peg['nama'] ? 'selected' : '' ?>><?= esc($peg['nama']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label for="lokasi" class="form-label fw-semibold">Lokasi Kegiatan</label>
+                        <input type="text" class="form-control" id="lokasi" name="lokasi" placeholder="Contoh: Aula lt.2 Diskominfo" required value="<?= old('lokasi') ?>">
                     </div>
 
                     <div class="mb-3">
@@ -96,6 +85,16 @@
                         <label for="kode_subbagian" class="form-label fw-semibold">Subbagian / Subbidang Penyelenggara (Opsional)</label>
                         <select class="form-select select2-enable" name="kode_subbagian" id="kode_subbagian" style="width: 100%" disabled>
                             <option value="">-- Pilih Subbagian (Opsional) --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="penanggung_jawab" class="form-label fw-semibold">Penanggung Jawab (PJ)</label>
+                        <select class="form-select select2-enable" id="penanggung_jawab" name="penanggung_jawab" required style="width: 100%">
+                            <option value="">-- Pilih Penanggung Jawab --</option>
+                            <?php foreach ($pegawais as $peg): ?>
+                                <option value="<?= esc($peg['nama']) ?>" <?= old('penanggung_jawab') === $peg['nama'] ? 'selected' : '' ?>><?= esc($peg['nama']) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 

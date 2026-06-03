@@ -65,17 +65,17 @@
                                     </button>
                                     <?php if ($agenda['status'] === 'aktif'): ?>
                                     <button class="btn btn-sm btn-success text-white border btn-complete me-1" 
-                                            data-url="<?= base_url('agenda/complete/' . $agenda['id_agenda']) ?>" 
+                                            data-url="<?= base_url('agenda/complete/' . encode_id($agenda['id_agenda'])) ?>" 
                                             data-name="<?= esc($agenda['nama_agenda']) ?>"
                                             title="Selesaikan Agenda">
                                         <i class="bi bi-check-circle-fill"></i> Selesai
                                     </button>
                                     <?php endif; ?>
-                                    <a href="<?= base_url('agenda/edit/' . $agenda['id_agenda']) ?>" class="btn btn-sm btn-light border me-1" title="Ubah">
+                                    <a href="<?= base_url('agenda/edit/' . encode_id($agenda['id_agenda'])) ?>" class="btn btn-sm btn-light border me-1" title="Ubah">
                                         <i class="bi bi-pencil-fill text-warning"></i>
                                     </a>
                                     <button class="btn btn-sm btn-light border btn-delete" 
-                                            data-url="<?= base_url('agenda/delete/' . $agenda['id_agenda']) ?>" 
+                                            data-url="<?= base_url('agenda/delete/' . encode_id($agenda['id_agenda'])) ?>" 
                                             title="Hapus">
                                         <i class="bi bi-trash3-fill text-danger"></i>
                                     </button>

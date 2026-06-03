@@ -37,7 +37,7 @@
                     </div>
                 </div>
 
-                <form action="<?= base_url('pegawai/save-password/' . $pegawai['id']) ?>" method="POST">
+                <form action="<?= base_url('pegawai/save-password/' . encode_id($pegawai['id'])) ?>" method="POST">
                     <?= csrf_field() ?>
 
                     <div class="mb-3">

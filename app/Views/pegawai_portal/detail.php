@@ -127,7 +127,7 @@
             </div>
             <div class="glass-card-body">
                 <?php if ($tamu['status_kunjungan'] === 'menunggu'): ?>
-                    <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . $tamu['id']) ?>" method="POST" class="swal-confirm-form" data-confirm-title="<?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil tamu ini?' : 'Konfirmasi tamu ini?' ?>" data-confirm-text="<?= empty($tamu['id_pegawai_tujuan']) ? 'Tamu akan menjadi tanggung jawab Anda dan status berubah menjadi berlangsung.' : 'Status kunjungan akan diubah menjadi berlangsung.' ?>">
+                    <form action="<?= base_url('pegawai-portal/tamu/konfirmasi/' . encode_id($tamu['id'])) ?>" method="POST" class="swal-confirm-form" data-confirm-title="<?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil tamu ini?' : 'Konfirmasi tamu ini?' ?>" data-confirm-text="<?= empty($tamu['id_pegawai_tujuan']) ? 'Tamu akan menjadi tanggung jawab Anda dan status berubah menjadi berlangsung.' : 'Status kunjungan akan diubah menjadi berlangsung.' ?>">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-success w-100 rounded-pill py-2 mb-2">
                             <i class="bi bi-check-lg me-2"></i> <?= empty($tamu['id_pegawai_tujuan']) ? 'Ambil & Terima Tamu' : 'Terima Tamu' ?>
@@ -136,7 +136,7 @@
                 <?php endif; ?>
 
                 <?php if ($tamu['status_kunjungan'] === 'berlangsung'): ?>
-                    <form action="<?= base_url('pegawai-portal/tamu/update-status/' . $tamu['id']) ?>" method="POST" class="swal-confirm-form" data-confirm-title="Selesaikan kunjungan?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
+                    <form action="<?= base_url('pegawai-portal/tamu/update-status/' . encode_id($tamu['id'])) ?>" method="POST" class="swal-confirm-form" data-confirm-title="Selesaikan kunjungan?" data-confirm-text="Status kunjungan akan diubah menjadi selesai.">
                         <?= csrf_field() ?>
                         <input type="hidden" name="status_kunjungan" value="selesai">
                         <button type="submit" class="btn btn-primary w-100 rounded-pill py-2">
@@ -168,7 +168,7 @@
                 <h5 class="fw-bold text-dark mb-0"><i class="bi bi-pen me-2 text-primary"></i>Tanda Tangan</h5>
             </div>
             <div class="glass-card-body text-center">
-                <img src="<?= base_url('uploads/tamu/' . $tamu['tanda_tangan']) ?>" alt="Tanda Tangan" class="img-fluid border rounded" style="max-height: 150px; background: #fff;">
+                <img src="<?= getUploadUrl($tamu['tanda_tangan'], 'ttd') ?>" alt="Tanda Tangan" class="img-fluid border rounded" style="max-height: 150px; background: #fff;">
             </div>
         </div>
         <?php endif; ?>
@@ -180,7 +180,7 @@
                 <h5 class="fw-bold text-dark mb-0"><i class="bi bi-camera me-2 text-success"></i>Foto Tamu</h5>
             </div>
             <div class="glass-card-body text-center">
-                <img src="<?= base_url('uploads/tamu/' . $tamu['foto']) ?>" alt="Foto Tamu" class="img-fluid rounded" style="max-height: 200px;">
+                <img src="<?= getUploadUrl($tamu['foto'], 'foto') ?>" alt="Foto Tamu" class="img-fluid rounded" style="max-height: 200px;">
             </div>
         </div>
         <?php endif; ?>
@@ -192,7 +192,7 @@
                 <h5 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark me-2 text-danger"></i>Dokumen</h5>
             </div>
             <div class="glass-card-body text-center">
-                <a href="<?= base_url('uploads/tamu/' . $tamu['dokumen_pendukung']) ?>" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+                <a href="<?= getUploadUrl($tamu['dokumen_pendukung'], 'file') ?>" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
                     <i class="bi bi-download me-1"></i> Lihat Dokumen
                 </a>
             </div>

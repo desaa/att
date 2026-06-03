@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/custom.css') ?>">
     
     <?= $this->renderSection('styles') ?>
 </head>
@@ -122,7 +123,7 @@
         <!-- Top Navbar -->
         <nav class="top-navbar">
             <div class="d-flex align-items-center">
-                <button class="sidebar-toggle me-3" id="sidebar-toggle" onclick="toggleSidebar()">
+                <button class="sidebar-toggle me-3 d-lg-none" id="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
                 </button>
                 <div class="d-none d-md-block text-secondary small">
@@ -200,7 +201,20 @@
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('show');
+            const mainWrapper = document.getElementById('main-wrapper');
+            
+            if (window.innerWidth >= 992) {
+                sidebar.classList.toggle('hide');
+                if (mainWrapper) mainWrapper.classList.toggle('expanded');
+            } else {
+                sidebar.classList.toggle('show');
+            }
+            // Re-adjust DataTables when sidebar width changes
+            setTimeout(function() {
+                if ($.fn.dataTable) {
+                    $('.table').DataTable().columns.adjust().responsive.recalc();
+                }
+            }, 350);
         }
         
         function showAppToast(icon, title) {

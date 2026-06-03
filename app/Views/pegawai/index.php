@@ -60,14 +60,14 @@
                                 </td>
                                 <?php if (false): ?>
                                 <td class="text-end pe-4">
-                                    <a href="<?= base_url('pegawai/set-password/' . $pegawai['id']) ?>" class="btn btn-sm btn-light border me-1" title="Atur Password Login">
+                                    <a href="<?= base_url('pegawai/set-password/' . encode_id($pegawai['id'])) ?>" class="btn btn-sm btn-light border me-1" title="Atur Password Login">
                                         <i class="bi bi-key-fill text-primary"></i>
                                     </a>
-                                    <a href="<?= base_url('pegawai/edit/' . $pegawai['id']) ?>" class="btn btn-sm btn-light border me-1" title="Ubah">
+                                    <a href="<?= base_url('pegawai/edit/' . encode_id($pegawai['id'])) ?>" class="btn btn-sm btn-light border me-1" title="Ubah">
                                         <i class="bi bi-pencil-fill text-warning"></i>
                                     </a>
                                     <button class="btn btn-sm btn-light border btn-delete" 
-                                            data-url="<?= base_url('pegawai/delete/' . $pegawai['id']) ?>" 
+                                            data-url="<?= base_url('pegawai/delete/' . encode_id($pegawai['id'])) ?>" 
                                             title="Hapus">
                                         <i class="bi bi-trash3-fill text-danger"></i>
                                     </button>

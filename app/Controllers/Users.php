@@ -19,23 +19,34 @@ class Users extends BaseController
                            ->asArray()
                            ->findAll();
 
-        // Ambil semua OPD dan Bagian dari Simpelgan untuk name lookup
+        // Ambil semua OPD, Bagian, dan Subbagian dari Simpelgan untuk name lookup
         $db = \Config\Database::connect('simpelgan');
-        $opdList    = $db->table('master_opd')->where('id_gov', 'P2300001')->get()->getResultArray();
-        $bagianList = $db->table('master_bagian')->where('id_gov', 'P2300001')->get()->getResultArray();
+        $opdList       = $db->table('master_opd')->where('id_gov', 'P2300001')->get()->getResultArray();
+        $bagianList    = $db->table('master_bagian')->where('id_gov', 'P2300001')->get()->getResultArray();
+        $subbagianList = $db->table('master_subbagian')->where('id_gov', 'P2300001')->get()->getResultArray();
 
         // Buat map kode => nama untuk pencarian cepat
         $opdMap    = array_column($opdList, 'nama_opd', 'kode_opd');
+        
         $bagianMap = [];
         foreach ($bagianList as $b) {
             $bagianMap[$b['kode_opd'] . '_' . $b['kode_bagian']] = $b['nama_bagian'];
         }
 
-        // Enrich setiap user dengan nama OPD dan Bagian
+        $subbagianMap = [];
+        foreach ($subbagianList as $sb) {
+            $subbagianMap[$sb['kode_opd'] . '_' . $sb['kode_bagian'] . '_' . $sb['kode_subbagian']] = $sb['nama_subbagian'];
+        }
+
+        // Enrich setiap user dengan nama OPD, Bagian, dan Subbagian
         foreach ($users as &$user) {
             $user['nama_opd']    = $opdMap[$user['kode_opd']] ?? '-';
-            $key                 = $user['kode_opd'] . '_' . $user['kode_bagian'];
-            $user['nama_bagian'] = (!empty($user['kode_bagian']) && isset($bagianMap[$key])) ? $bagianMap[$key] : '-';
+            
+            $keyBagian           = $user['kode_opd'] . '_' . $user['kode_bagian'];
+            $user['nama_bagian'] = (!empty($user['kode_bagian']) && isset($bagianMap[$keyBagian])) ? $bagianMap[$keyBagian] : '-';
+            
+            $keySubbagian           = $user['kode_opd'] . '_' . $user['kode_bagian'] . '_' . $user['kode_subbagian'];
+            $user['nama_subbagian'] = (!empty($user['kode_subbagian']) && isset($subbagianMap[$keySubbagian])) ? $subbagianMap[$keySubbagian] : '-';
         }
         unset($user);
 
@@ -93,8 +104,13 @@ class Users extends BaseController
         return redirect()->to('users')->with('success', 'User Admin berhasil dibuat!');
     }
 
-    public function edit($id)
+    public function edit($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $userModel = new UserModel();
         
         // Find user with email joined
@@ -127,8 +143,13 @@ class Users extends BaseController
         return view('users/edit', $data);
     }
 
-    public function update($id)
+    public function update($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $userModel = new UserModel();
         
         $rules = [
@@ -166,8 +187,13 @@ class Users extends BaseController
         return redirect()->to('users')->with('success', 'User Admin berhasil diperbarui!');
     }
 
-    public function resetPassword($id)
+    public function resetPassword($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $userModel = new UserModel();
         $user = $userModel->find($id);
 
@@ -179,8 +205,13 @@ class Users extends BaseController
         return view('users/reset_password', $data);
     }
 
-    public function saveResetPassword($id)
+    public function saveResetPassword($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $userModel = new UserModel();
         
         $rules = [
@@ -207,8 +238,13 @@ class Users extends BaseController
         return redirect()->to('users')->with('success', 'Password berhasil direset!');
     }
 
-    public function toggleStatus($id)
+    public function toggleStatus($hash)
     {
+        $id = decode_id($hash);
+        if (!$id) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
         $userModel = new UserModel();
         $user = $userModel->findById($id);
 

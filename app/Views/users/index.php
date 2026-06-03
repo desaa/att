@@ -49,7 +49,12 @@
                                     <?php if ($u['group'] === 'superadmin'): ?>
                                         <span class="text-muted small">Semua Unit (Super)</span>
                                     <?php else: ?>
-                                        <div class="fw-semibold text-secondary small"><?= esc($u['nama_bagian'] !== '-' ? $u['nama_bagian'] : ($u['kode_opd'] ?? '-')) ?></div>
+                                        <?php if ($u['nama_subbagian'] !== '-'): ?>
+                                            <div class="fw-semibold text-secondary small"><?= esc($u['nama_subbagian']) ?></div>
+                                            <div class="text-muted small" style="font-size: 0.75rem;"><?= esc($u['nama_bagian']) ?></div>
+                                        <?php else: ?>
+                                            <div class="fw-semibold text-secondary small"><?= esc($u['nama_bagian'] !== '-' ? $u['nama_bagian'] : ($u['kode_opd'] ?? '-')) ?></div>
+                                        <?php endif; ?>
                                         <div class="text-muted small" style="font-size: 0.75rem;"><?= esc($u['nama_opd'] ?? '-') ?></div>
                                     <?php endif; ?>
                                 </td>
@@ -60,14 +65,14 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     <?php if ($u['group'] !== 'superadmin'): ?>
-                                        <a href="<?= base_url('users/edit/' . $u['id']) ?>" class="btn btn-sm btn-light border me-1" title="Ubah User">
+                                        <a href="<?= base_url('users/edit/' . encode_id($u['id'])) ?>" class="btn btn-sm btn-light border me-1" title="Ubah User">
                                             <i class="bi bi-pencil-fill text-warning"></i>
                                         </a>
-                                        <a href="<?= base_url('users/reset-password/' . $u['id']) ?>" class="btn btn-sm btn-light border me-1" title="Reset Sandi">
+                                        <a href="<?= base_url('users/reset-password/' . encode_id($u['id'])) ?>" class="btn btn-sm btn-light border me-1" title="Reset Sandi">
                                             <i class="bi bi-key-fill text-primary"></i>
                                         </a>
                                         <button class="btn btn-sm btn-light border btn-toggle-status" 
-                                                data-url="<?= base_url('users/toggle-status/' . $u['id']) ?>" 
+                                                data-url="<?= base_url('users/toggle-status/' . encode_id($u['id'])) ?>" 
                                                 data-username="<?= esc($u['username']) ?>"
                                                 title="<?= $u['status_akun'] === 'aktif' ? 'Nonaktifkan' : 'Aktifkan' ?>">
                                             <i class="bi bi-power text-<?= $u['status_akun'] === 'aktif' ? 'danger' : 'success' ?>"></i>

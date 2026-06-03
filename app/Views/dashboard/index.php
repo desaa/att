@@ -121,9 +121,15 @@
 <div class="row">
     <div class="col-12">
         <div class="glass-card">
-            <div class="glass-card-header d-flex justify-content-between align-items-center">
+            <div class="glass-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="fw-bold text-dark mb-0"><i class="bi bi-list-stars me-2 text-indigo"></i>Kunjungan Terbaru</h5>
-                <a href="<?= base_url('tamu') ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">Lihat Semua</a>
+                <div class="d-flex align-items-center gap-2">
+                    <form action="<?= base_url('dashboard') ?>" method="GET" class="d-flex align-items-center gap-2">
+                        <input type="text" name="bulan" id="filterBulan" class="form-control form-control-sm" value="<?= esc($filterBulan) ?>" placeholder="Pilih Bulan">
+                        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                    </form>
+                    <a href="<?= base_url('tamu') ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">Lihat Semua</a>
+                </div>
             </div>
             <div class="glass-card-body p-0">
                 <div class="table-responsive">
@@ -173,7 +179,7 @@
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <a href="<?= base_url('tamu/detail/' . $tamu['id']) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail Kunjungan">
+                                        <a href="<?= base_url('tamu/detail/' . encode_id($tamu['id'])) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail Kunjungan">
                                             <i class="bi bi-eye"></i> Detail
                                         </a>
                                     </td>
@@ -281,6 +287,22 @@
                 this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyinkronkan...';
             });
         }
+    });
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr("#filterBulan", {
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand: true, //defaults to false
+                    dateFormat: "Y-m", //defaults to "F Y"
+                    altFormat: "F Y", //defaults to "F Y"
+                    theme: "light" // defaults to "light"
+                })
+            ]
+        });
     });
 </script>
 <?= $this->endSection() ?>

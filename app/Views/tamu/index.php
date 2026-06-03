@@ -27,6 +27,38 @@
             <div class="glass-card-body">
                 <form action="<?= base_url('tamu') ?>" method="GET" class="row g-3 align-items-end">
                     
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <?php if ($isSuperadmin): ?>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Dinas / OPD</label>
+                                <select class="form-select form-select-sm select2-enable" name="kode_opd" id="kode_opd" style="width: 100%">
+                                    <option value="">-- Semua OPD --</option>
+                                    <?php foreach ($opds as $row): ?>
+                                        <option value="<?= esc($row['kode_opd']) ?>" <?= $filters['kode_opd'] === $row['kode_opd'] ? 'selected' : '' ?>><?= esc($row['nama_opd']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <?php else: ?>
+                            <input type="hidden" name="kode_opd" id="kode_opd" value="<?= esc($userKodeOpd) ?>">
+                            <?php endif; ?>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Bagian / Bidang</label>
+                                <select class="form-select form-select-sm select2-enable" name="kode_bagian" id="kode_bagian" style="width: 100%" data-selected="<?= esc($filters['kode_bagian']) ?>">
+                                    <option value="">-- Semua Bagian --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">Subbagian / Subbidang</label>
+                                <select class="form-select form-select-sm select2-enable" name="kode_subbagian" id="kode_subbagian" style="width: 100%" data-selected="<?= esc($filters['kode_subbagian']) ?>">
+                                    <option value="">-- Semua Subbagian --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-md-3">
                         <label for="start_date" class="form-label small fw-semibold">Tanggal Mulai</label>
                         <input type="text" class="form-control form-control-sm date-picker" id="start_date" name="start_date" placeholder="Pilih Tanggal" value="<?= esc($filters['start_date']) ?>">
@@ -50,7 +82,7 @@
 
                     <div class="col-md-3">
                         <label for="pegawai_id" class="form-label small fw-semibold">Pegawai Tujuan</label>
-                        <select class="form-select form-select-sm select2-enable" name="pegawai_id" id="pegawai_id" style="width: 100%;">
+                        <select class="form-select form-select-sm select2-enable" name="pegawai_id" id="pegawai_id" style="width: 100%;" data-selected="<?= esc($filters['pegawai_id']) ?>">
                             <option value="">-- Semua Pegawai --</option>
                             <?php foreach ($pegawais as $p): ?>
                                 <option value="<?= esc($p['id']) ?>" <?= (string) $filters['pegawai_id'] === (string) $p['id'] ? 'selected' : '' ?>><?= esc($p['nama']) ?></option>
@@ -133,7 +165,7 @@
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="<?= base_url('tamu/detail/' . $tamu['id']) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail Kunjungan">
+                                    <a href="<?= base_url('tamu/detail/' . encode_id($tamu['id'])) ?>" class="btn btn-sm btn-light border btn-icon" title="Detail Kunjungan">
                                         <i class="bi bi-eye"></i> Detail
                                     </a>
                                 </td>
@@ -176,6 +208,112 @@
                 }
             }
         });
+
+        // Cascading Filters
+        let initialBagian = $('#kode_bagian').data('selected');
+        let initialSubbagian = $('#kode_subbagian').data('selected');
+        let initialPegawai = $('#pegawai_id').data('selected');
+
+        function loadBagian(kodeOpd, selectedValue) {
+            let bagianSelect = $('#kode_bagian');
+            let subbagianSelect = $('#kode_subbagian');
+            
+            bagianSelect.empty().append('<option value="">-- Semua Bagian --</option>');
+            subbagianSelect.empty().append('<option value="">-- Semua Subbagian --</option>');
+            
+            if (!kodeOpd) return;
+
+            $.ajax({
+                url: '<?= base_url("api/bagian") ?>/' + kodeOpd,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            let selected = (selectedValue == val.kode_bagian) ? 'selected' : '';
+                            bagianSelect.append('<option value="' + val.kode_bagian + '" ' + selected + '>' + val.nama_bagian + '</option>');
+                        });
+                    }
+                    if (selectedValue) {
+                        loadSubbagian(kodeOpd, selectedValue, initialSubbagian);
+                    }
+                }
+            });
+        }
+
+        function loadSubbagian(kodeOpd, kodeBagian, selectedValue) {
+            let subbagianSelect = $('#kode_subbagian');
+            subbagianSelect.empty().append('<option value="">-- Semua Subbagian --</option>');
+            
+            if (!kodeOpd || !kodeBagian) return;
+
+            $.ajax({
+                url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            let selected = (selectedValue == val.kode_subbagian) ? 'selected' : '';
+                            subbagianSelect.append('<option value="' + val.kode_subbagian + '" ' + selected + '>' + val.nama_subbagian + '</option>');
+                        });
+                    }
+                }
+            });
+        }
+
+        function loadPegawai(kodeOpd, kodeBagian, kodeSubbagian, selectedValue) {
+            let pegawaiSelect = $('#pegawai_id');
+            if (!kodeOpd) return; // If opd is required, else could load all. Here we assume we only filter when opd is selected.
+
+            let url = '<?= base_url("api/pegawai") ?>/' + kodeOpd;
+            if (kodeBagian) {
+                url += '/' + kodeBagian;
+                if (kodeSubbagian) {
+                    url += '/' + kodeSubbagian;
+                }
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    pegawaiSelect.empty().append('<option value="">-- Semua Pegawai --</option>');
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            let selected = (selectedValue == val.id) ? 'selected' : '';
+                            pegawaiSelect.append('<option value="' + val.id + '" ' + selected + '>' + val.nama + '</option>');
+                        });
+                    }
+                }
+            });
+        }
+
+        $('#kode_opd').on('change', function() {
+            let kodeOpd = $(this).val();
+            loadBagian(kodeOpd, '');
+            loadPegawai(kodeOpd, '', '', '');
+        });
+
+        $('#kode_bagian').on('change', function() {
+            let kodeOpd = $('#kode_opd').val();
+            let kodeBagian = $(this).val();
+            loadSubbagian(kodeOpd, kodeBagian, '');
+            loadPegawai(kodeOpd, kodeBagian, '', '');
+        });
+
+        $('#kode_subbagian').on('change', function() {
+            let kodeOpd = $('#kode_opd').val();
+            let kodeBagian = $('#kode_bagian').val();
+            let kodeSubbagian = $(this).val();
+            loadPegawai(kodeOpd, kodeBagian, kodeSubbagian, '');
+        });
+
+        // Initial Load
+        if ($('#kode_opd').val()) {
+            loadBagian($('#kode_opd').val(), initialBagian);
+        }
     });
 </script>
 <?= $this->endSection() ?>

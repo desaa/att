@@ -14,7 +14,7 @@
     <div class="col-12 col-md-6">
         <div class="glass-card">
             <div class="glass-card-body">
-                <form action="<?= base_url('users/reset-password/' . $user->id) ?>" method="POST" id="resetForm">
+                <form action="<?= base_url('users/reset-password/' . encode_id($user->id)) ?>" method="POST" id="resetForm">
                     <?= csrf_field() ?>
                     
                     <div class="mb-3">

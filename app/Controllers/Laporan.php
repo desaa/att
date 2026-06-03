@@ -24,6 +24,9 @@ class Laporan extends BaseController
         $status = $this->request->getGet('status');
         $pegawaiId = $this->request->getGet('pegawai_id');
         $idAgenda = $this->request->getGet('id_agenda');
+        $kodeOpdFilter = $this->request->getGet('kode_opd');
+        $kodeBagianFilter = $this->request->getGet('kode_bagian');
+        $kodeSubbagianFilter = $this->request->getGet('kode_subbagian');
 
         $query = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
@@ -34,6 +37,12 @@ class Laporan extends BaseController
         // Scope by department if Admin
         if (!$isSuperadmin) {
             $query->where('buku_tamu.kode_opd', $user->kode_opd);
+            if (!empty($user->kode_bagian)) {
+                $query->where('buku_tamu.kode_bagian', $user->kode_bagian);
+            }
+            if (!empty($user->kode_subbagian)) {
+                $query->where('buku_tamu.kode_subbagian', $user->kode_subbagian);
+            }
         }
 
         // Apply filters
@@ -55,6 +64,16 @@ class Laporan extends BaseController
             $query->where('buku_tamu.id_agenda', $idAgenda);
         }
 
+        if ($isSuperadmin && $kodeOpdFilter) {
+            $query->where('buku_tamu.kode_opd', $kodeOpdFilter);
+        }
+        if ($kodeBagianFilter) {
+            $query->where('buku_tamu.kode_bagian', $kodeBagianFilter);
+        }
+        if ($kodeSubbagianFilter) {
+            $query->where('buku_tamu.kode_subbagian', $kodeSubbagianFilter);
+        }
+
         return $query->orderBy('buku_tamu.waktu_datang', 'DESC')->findAll();
     }
 
@@ -64,11 +83,32 @@ class Laporan extends BaseController
         $isSuperadmin = $user->inGroup('superadmin');
         
         $pegawaiModel = new PegawaiModel();
+        $db = \Config\Database::connect('simpelgan');
+
+        // Filter parameters
+        $kodeOpdFilter = $this->request->getGet('kode_opd');
+        $kodeBagianFilter = $this->request->getGet('kode_bagian');
+        $kodeSubbagianFilter = $this->request->getGet('kode_subbagian');
 
         // Fetch target employees for filter dropdown
         $pegBuilder = $pegawaiModel->where('status', 'aktif');
         if (!$isSuperadmin) {
             $pegBuilder->where('kode_opd', $user->kode_opd);
+            if (!empty($user->kode_bagian)) {
+                $pegBuilder->where('kode_bagian', $user->kode_bagian);
+            }
+            if (!empty($user->kode_subbagian)) {
+                $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
+            }
+        }
+        if ($isSuperadmin && $kodeOpdFilter) {
+            $pegBuilder->where('kode_opd', $kodeOpdFilter);
+        }
+        if ($kodeBagianFilter) {
+            $pegBuilder->where('kode_bagian', $kodeBagianFilter);
+        }
+        if ($kodeSubbagianFilter) {
+            $pegBuilder->where('kode_subbagian', $kodeSubbagianFilter);
         }
         $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
 
@@ -77,17 +117,40 @@ class Laporan extends BaseController
         $agendaBuilder = $agendaModel->where('status', 'aktif');
         if (!$isSuperadmin) {
             $agendaBuilder->where('kode_opd', $user->kode_opd);
+            if (!empty($user->kode_bagian)) {
+                $agendaBuilder->where('kode_bagian', $user->kode_bagian);
+            }
+            if (!empty($user->kode_subbagian)) {
+                $agendaBuilder->where('kode_subbagian', $user->kode_subbagian);
+            }
+        }
+        if ($isSuperadmin && $kodeOpdFilter) {
+            $agendaBuilder->where('kode_opd', $kodeOpdFilter);
+        }
+        if ($kodeBagianFilter) {
+            $agendaBuilder->where('kode_bagian', $kodeBagianFilter);
+        }
+        if ($kodeSubbagianFilter) {
+            $agendaBuilder->where('kode_subbagian', $kodeSubbagianFilter);
         }
         $data['agendas'] = $agendaBuilder->orderBy('nama_agenda', 'ASC')->findAll();
 
         $data['tamus'] = $this->getFilteredData();
         
+        if ($isSuperadmin) {
+            $data['opds'] = $db->table('master_opd')->orderBy('nama_opd', 'ASC')->get()->getResultArray();
+        }
+        $data['userKodeOpd'] = !$isSuperadmin ? $user->kode_opd : null;
+
         $data['filters'] = [
-            'start_date' => $this->request->getGet('start_date'),
-            'end_date'   => $this->request->getGet('end_date'),
-            'status'     => $this->request->getGet('status'),
-            'pegawai_id' => $this->request->getGet('pegawai_id'),
-            'id_agenda'  => $this->request->getGet('id_agenda'),
+            'start_date'     => $this->request->getGet('start_date'),
+            'end_date'       => $this->request->getGet('end_date'),
+            'status'         => $this->request->getGet('status'),
+            'pegawai_id'     => $this->request->getGet('pegawai_id'),
+            'id_agenda'      => $this->request->getGet('id_agenda'),
+            'kode_opd'       => $kodeOpdFilter,
+            'kode_bagian'    => $kodeBagianFilter,
+            'kode_subbagian' => $kodeSubbagianFilter,
         ];
         $data['isSuperadmin'] = $isSuperadmin;
 

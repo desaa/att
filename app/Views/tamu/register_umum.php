@@ -109,6 +109,17 @@
                     <label for="instansi" class="form-label fw-semibold">Instansi / Asal <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="instansi" name="instansi" placeholder="Kantor, Instansi, Perusahaan, Sekolah, atau Umum" required>
                 </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="bidang" class="form-label fw-semibold">Bidang <span class="text-secondary small">(Opsional)</span></label>
+                        <input type="text" class="form-control" id="bidang" name="bidang" placeholder="Nama Bidang (Jika ada)">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="subbidang" class="form-label fw-semibold">Subbidang / Seksi <span class="text-secondary small">(Opsional)</span></label>
+                        <input type="text" class="form-control" id="subbidang" name="subbidang" placeholder="Nama Subbidang (Jika ada)">
+                    </div>
+                </div>
 
                 <div class="mb-3">
                     <label for="alamat" class="form-label fw-semibold">Alamat Lengkap <span class="text-danger">*</span></label>
@@ -116,12 +127,45 @@
                 </div>
 
                 <div class="row mb-4">
+                    <!-- Target Filters -->
+                    <input type="hidden" id="kode_opd_val" value="<?= esc($opd['kode_opd']) ?>">
+                    
+                    <?php if (empty($bagian)): ?>
+                        <div class="col-md-6 mb-3">
+                            <label for="filter_bagian" class="form-label fw-semibold">Filter Bidang Tujuan <span class="text-secondary small">(Opsional)</span></label>
+                            <select class="form-select select2-enable" id="filter_bagian" style="width: 100%;">
+                                <option value="">-- Semua Bidang --</option>
+                                <?php foreach ($bagians as $b): ?>
+                                    <option value="<?= esc($b['kode_bagian']) ?>"><?= esc($b['nama_bagian']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php else: ?>
+                        <input type="hidden" id="filter_bagian" value="<?= esc($bagian['kode_bagian']) ?>">
+                    <?php endif; ?>
+
+                    <?php if (empty($subbagian)): ?>
+                        <div class="col-md-6 mb-3">
+                            <label for="filter_subbagian" class="form-label fw-semibold">Filter Subbidang Tujuan <span class="text-secondary small">(Opsional)</span></label>
+                            <select class="form-select select2-enable" id="filter_subbagian" style="width: 100%;">
+                                <option value="">-- Semua Subbidang --</option>
+                                <?php if (!empty($subbagians)): ?>
+                                    <?php foreach ($subbagians as $sb): ?>
+                                        <option value="<?= esc($sb['kode_subbagian']) ?>"><?= esc($sb['nama_subbagian']) ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                    <?php else: ?>
+                        <input type="hidden" id="filter_subbagian" value="<?= esc($subbagian['kode_subbagian']) ?>">
+                    <?php endif; ?>
+
                     <div class="col-md-6">
                         <label for="id_pegawai_tujuan" class="form-label fw-semibold">Pegawai yang Ingin Ditemui <span class="text-secondary small">(Opsional)</span></label>
                         <select class="form-select select2-enable" name="id_pegawai_tujuan" id="id_pegawai_tujuan" style="width: 100%;">
                             <option value="">-- Pilih Pegawai --</option>
                             <?php foreach ($pegawais as $p): ?>
-                                <option value="<?= esc($p['id']) ?>"><?= esc($p['nama']) ?> (<?= esc($p['jabatan'] ?: 'Pegawai') ?>)</option>
+                                <option value="<?= esc($p['id']) ?>"><?= esc($p['nama']) ?> <?= !empty($p['jabatan']) ? '(' . esc($p['jabatan']) . ')' : '' ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -182,7 +226,7 @@
                         <div class="mt-4">
                             <label for="dokumen_pendukung" class="form-label fw-semibold">Upload Berkas / Lampiran <span class="text-secondary small">(Opsional)</span></label>
                             <input type="file" class="form-control form-control-sm" id="dokumen_pendukung" name="dokumen_pendukung" accept=".pdf,.jpg,.jpeg,.png,.docx">
-                            <small class="text-muted" style="font-size: 0.725rem;">Format: PDF, JPG, PNG, DOCX (Max 2MB) jika ada surat tugas atau proposal pendukung.</small>
+                            <small class="text-muted" style="font-size: 0.725rem;">Format: PDF, JPG, PNG, DOCX (Max 1MB) jika ada surat tugas atau proposal pendukung.</small>
                         </div>
                     </div>
                 </div>
@@ -250,6 +294,12 @@
                             if (response.data.instansi) {
                                 $('#instansi').val(response.data.instansi);
                             }
+                            if (response.data.bidang) {
+                                $('#bidang').val(response.data.bidang);
+                            }
+                            if (response.data.subbidang) {
+                                $('#subbidang').val(response.data.subbidang);
+                            }
                             showAppToast('success', 'Data pegawai ditemukan: ' + response.data.nama);
                         } else {
                             showAppToast('info', 'NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
@@ -267,6 +317,68 @@
 
         $('#btn-cari-pegawai').on('click', function() {
             cariPegawai();
+        });
+
+        // Cascading Target Employee Filters
+        function loadSubbagianTarget(kodeOpd, kodeBagian) {
+            let subbagianSelect = $('#filter_subbagian');
+            if(subbagianSelect.length === 0) return;
+            subbagianSelect.empty().append('<option value="">-- Semua Subbidang --</option>');
+            if (!kodeOpd || !kodeBagian) return;
+
+            $.ajax({
+                url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            subbagianSelect.append('<option value="' + val.kode_subbagian + '">' + val.nama_subbagian + '</option>');
+                        });
+                    }
+                }
+            });
+        }
+
+        function loadPegawaiTarget(kodeOpd, kodeBagian, kodeSubbagian) {
+            let pegawaiSelect = $('#id_pegawai_tujuan');
+            if (!kodeOpd) return; 
+
+            let url = '<?= base_url("api/pegawai") ?>/' + kodeOpd;
+            if (kodeBagian) {
+                url += '/' + kodeBagian;
+                if (kodeSubbagian) {
+                    url += '/' + kodeSubbagian;
+                }
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    pegawaiSelect.empty().append('<option value="">-- Pilih Pegawai --</option>');
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            pegawaiSelect.append('<option value="' + val.id + '">' + val.nama + (val.jabatan ? ' (' + val.jabatan + ')' : '') + '</option>');
+                        });
+                    }
+                }
+            });
+        }
+
+        $('#filter_bagian').on('change', function() {
+            let kodeOpd = $('#kode_opd_val').val();
+            let kodeBagian = $(this).val();
+            loadSubbagianTarget(kodeOpd, kodeBagian);
+            loadPegawaiTarget(kodeOpd, kodeBagian, '');
+        });
+
+        $('#filter_subbagian').on('change', function() {
+            let kodeOpd = $('#kode_opd_val').val();
+            let kodeBagian = $('#filter_bagian').val();
+            let kodeSubbagian = $(this).val();
+            loadPegawaiTarget(kodeOpd, kodeBagian, kodeSubbagian);
         });
 
         $('#nik').on('change blur', function() {
