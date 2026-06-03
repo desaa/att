@@ -44,16 +44,28 @@ class Agenda extends BaseController
     {
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
-        
+
         $db = \Config\Database::connect('simpelgan');
+        $pegawaiModel = new \App\Models\PegawaiModel();
 
         if ($isSuperadmin) {
             $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+            $data['pegawais'] = [];
         } else {
             $opdModel = new OpdModel();
             $bagianModel = new BagianModel();
             $data['opd'] = $opdModel->find($user->kode_opd);
             $data['bagians'] = $bagianModel->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->findAll();
+
+            // Fetch pegawai for the OPD/Bagian/Subbagian based on user role
+            $pegBuilder = $pegawaiModel->where('kode_opd', $user->kode_opd)->where('status', 'aktif');
+            if ($user->kode_bagian) {
+                $pegBuilder->where('kode_bagian', $user->kode_bagian);
+            }
+            if ($user->kode_subbagian) {
+                $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
+            }
+            $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
         }
 
         $data['subbagians'] = [];
@@ -117,7 +129,7 @@ class Agenda extends BaseController
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
         $agendaModel = new AgendaModel();
-        
+
         $agenda = $agendaModel->find($id);
 
         if (!$agenda) {
@@ -130,6 +142,7 @@ class Agenda extends BaseController
         }
 
         $db = \Config\Database::connect('simpelgan');
+        $pegawaiModel = new \App\Models\PegawaiModel();
 
         if ($isSuperadmin) {
             $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
@@ -139,6 +152,7 @@ class Agenda extends BaseController
             } else {
                 $data['subbagians'] = [];
             }
+            $data['pegawais'] = $pegawaiModel->where('kode_opd', $agenda['kode_opd'])->where('status', 'aktif')->orderBy('nama', 'ASC')->findAll();
         } else {
             $opdModel = new OpdModel();
             $bagianModel = new BagianModel();
@@ -150,6 +164,16 @@ class Agenda extends BaseController
             } else {
                 $data['subbagians'] = [];
             }
+
+            // Fetch pegawai based on user role
+            $pegBuilder = $pegawaiModel->where('kode_opd', $user->kode_opd)->where('status', 'aktif');
+            if ($user->kode_bagian) {
+                $pegBuilder->where('kode_bagian', $user->kode_bagian);
+            }
+            if ($user->kode_subbagian) {
+                $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
+            }
+            $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
         }
 
         $data['agenda'] = $agenda;

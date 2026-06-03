@@ -45,7 +45,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="penanggung_jawab" class="form-label fw-semibold">Penanggung Jawab (PJ)</label>
-                            <input type="text" class="form-control" id="penanggung_jawab" name="penanggung_jawab" placeholder="Contoh: Budi Santoso, S.Kom" required value="<?= old('penanggung_jawab', $agenda['penanggung_jawab']) ?>">
+                            <select class="form-select select2-enable" id="penanggung_jawab" name="penanggung_jawab" required style="width: 100%">
+                                <option value="">-- Pilih Penanggung Jawab --</option>
+                                <?php foreach ($pegawais as $peg): ?>
+                                    <option value="<?= esc($peg['nama']) ?>" <?= old('penanggung_jawab', $agenda['penanggung_jawab']) === $peg['nama'] ? 'selected' : '' ?>><?= esc($peg['nama']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
 
@@ -171,17 +176,18 @@
             let kodeOpd = $('#kode_opd').val();
             let kodeBagian = $(this).val();
             let subbagianSelect = $('#kode_subbagian');
-            
+
             if ($(this).data('initialized')) {
                 subbagianSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').trigger('change');
             } else {
                 $(this).data('initialized', true);
+                loadPegawaiForAgenda(kodeOpd, kodeBagian, $('#kode_subbagian').val());
                 return; // Keep existing preselected Subbagian
             }
-            
+
             if (kodeOpd && kodeBagian) {
                 subbagianSelect.prop('disabled', true);
-                
+
                 $.ajax({
                     url: '<?= base_url("api/subbagian") ?>/' + kodeOpd + '/' + kodeBagian,
                     type: 'GET',
@@ -201,7 +207,102 @@
             } else {
                 subbagianSelect.prop('disabled', true);
             }
+
+            // Load pegawai for selected bagian
+            loadPegawaiForAgenda(kodeOpd, kodeBagian, '');
         });
+
+        // Load pegawai when subbagian changes
+        $('#kode_subbagian').on('change', function() {
+            let kodeOpd = $('#kode_opd').val();
+            let kodeBagian = $('#kode_bagian').val();
+            let kodeSubbagian = $(this).val();
+            loadPegawaiForAgenda(kodeOpd, kodeBagian, kodeSubbagian);
+        });
+
+        // Load pegawai when OPD changes (for superadmin)
+        $('#kode_opd').on('change', function() {
+            let kodeOpd = $(this).val();
+            let bagianSelect = $('#kode_bagian');
+            let subbagianSelect = $('#kode_subbagian');
+
+            if ($(this).data('initialized')) {
+                bagianSelect.empty().append('<option value="">-- Pilih Bagian (Opsional) --</option>').trigger('change');
+                subbagianSelect.empty().append('<option value="">-- Pilih Subbagian (Opsional) --</option>').prop('disabled', true).trigger('change');
+            } else {
+                $(this).data('initialized', true);
+                return; // Keep existing preselected Bagian
+            }
+
+            if (kodeOpd) {
+                bagianSelect.prop('disabled', true);
+
+                $.ajax({
+                    url: '<?= base_url("api/bagian") ?>/' + kodeOpd,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        bagianSelect.prop('disabled', false);
+                        if (data.length > 0) {
+                            $.each(data, function(key, val) {
+                                bagianSelect.append('<option value="' + val.kode_bagian + '">' + val.nama_bagian + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        showAppToast('error', 'Gagal mengambil data Bagian.');
+                    }
+                });
+            } else {
+                bagianSelect.prop('disabled', true);
+            }
+
+            loadPegawaiForAgenda(kodeOpd, '', '');
+        });
+
+        function loadPegawaiForAgenda(kodeOpd, kodeBagian, kodeSubbagian) {
+            let pegawaiSelect = $('#penanggung_jawab');
+
+            if (!kodeOpd) {
+                pegawaiSelect.empty().append('<option value="">-- Pilih Penanggung Jawab --</option>').trigger('change');
+                return;
+            }
+
+            pegawaiSelect.prop('disabled', true);
+
+            let url = '<?= base_url("api/pegawai") ?>/' + kodeOpd;
+            if (kodeBagian) {
+                url += '/' + kodeBagian;
+                if (kodeSubbagian) {
+                    url += '/' + kodeSubbagian;
+                }
+            }
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    pegawaiSelect.prop('disabled', false);
+                    let currentValue = pegawaiSelect.val();
+                    pegawaiSelect.empty().append('<option value="">-- Pilih Penanggung Jawab --</option>');
+                    if (data.length > 0) {
+                        $.each(data, function(key, val) {
+                            pegawaiSelect.append('<option value="' + val.nama + '">' + val.nama + '</option>');
+                        });
+                        // Restore current value if it still exists
+                        if (currentValue) {
+                            pegawaiSelect.val(currentValue);
+                        }
+                    }
+                    pegawaiSelect.trigger('change');
+                },
+                error: function() {
+                    showAppToast('error', 'Gagal mengambil data Pegawai.');
+                    pegawaiSelect.prop('disabled', false);
+                }
+            });
+        }
 
         $('#kode_opd').data('initialized', false);
         $('#kode_bagian').data('initialized', false);

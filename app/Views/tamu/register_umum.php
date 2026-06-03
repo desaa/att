@@ -5,9 +5,6 @@
 <?= $this->section('styles') ?>
 <style>
     .step-section {
-        display: none;
-    }
-    .step-section.active {
         display: block;
     }
     .signature-container {
@@ -62,23 +59,30 @@
                         if (!empty($bagian)) {
                             $parts[] = $bagian['nama_bagian'];
                         }
-                        echo esc(implode(' - ', $parts) ?: 'Semua Bagian / Bidang');
+                        echo esc(implode(' - ', $parts) ?: $opd['nama_opd']);
                     ?>
                 </h6>
-                <p class="small text-secondary mb-0"><?= esc($opd['nama_opd']) ?></p>
+                <?php if (!empty($parts)): ?>
+                    <p class="small text-secondary mb-0"><?= esc($opd['nama_opd']) ?></p>
+                <?php endif; ?>
             </div>
         </div>
 
-        <form action="<?= base_url('tamu/register-umum/store?' . http_build_query(array_filter(['kode_opd' => $kode_opd, 'kode_bagian' => $kode_bagian, 'kode_subbagian' => $kode_subbagian]))) ?>" method="POST" enctype="multipart/form-data" id="guestForm">
+        <?php
+            $formParams = !empty($qr_token)
+                ? ['q' => $qr_token]
+                : array_filter(['kode_opd' => $kode_opd, 'kode_bagian' => $kode_bagian, 'kode_subbagian' => $kode_subbagian]);
+        ?>
+        <form action="<?= base_url('tamu/register-umum/store?' . http_build_query($formParams)) ?>" method="POST" enctype="multipart/form-data" id="guestForm">
             <?= csrf_field() ?>
             
             <!-- Hidden Fields for base64 captures -->
             <input type="hidden" name="tanda_tangan" id="tanda_tangan">
             <input type="hidden" name="foto_tamu" id="foto_tamu">
 
-            <!-- STEP 1: DATA DIRI & TUJUAN -->
+            <!-- DATA DIRI & TUJUAN -->
             <div class="step-section active" id="step1">
-                <h5 class="fw-bold text-dark mb-3"><span class="badge bg-primary me-2">1</span>Data Diri &amp; Keperluan</h5>
+                <h5 class="fw-bold text-dark mb-3">Data Diri &amp; Keperluan</h5>
                 
                 <div class="mb-3">
                     <label for="nik" class="form-label fw-semibold">NIP / NIK (No. KTP) <span class="text-danger">*</span></label>
@@ -127,16 +131,11 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end pt-3 border-top">
-                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="nextStep(2)">
-                        Lanjut <i class="bi bi-arrow-right ms-1"></i>
-                    </button>
-                </div>
             </div>
 
-            <!-- STEP 2: DOKUMENTASI & TANDA TANGAN -->
+            <!-- DOKUMENTASI & TANDA TANGAN -->
             <div class="step-section" id="step2">
-                <h5 class="fw-bold text-dark mb-4"><span class="badge bg-primary me-2">2</span>Dokumentasi &amp; Tanda Tangan</h5>
+                <h5 class="fw-bold text-dark mb-4">Dokumentasi &amp; Tanda Tangan</h5>
 
                 <div class="row g-4 mb-4">
                     <!-- Photo Capture -->
@@ -188,10 +187,7 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between pt-3 border-top">
-                    <button type="button" class="btn btn-light rounded-pill px-4" onclick="prevStep(1)">
-                        <i class="bi bi-arrow-left me-1"></i> Kembali
-                    </button>
+                <div class="d-flex justify-content-end pt-3 border-top">
                     <button type="submit" class="btn btn-success rounded-pill px-5" id="btn-submit">
                         <i class="bi bi-check-circle-fill me-2"></i> Kirim Buku Tamu
                     </button>
@@ -251,6 +247,9 @@
                         $('#btn-cari-pegawai').prop('disabled', false).html('<i class="bi bi-search"></i> Cari');
                         if (response.status === 'success') {
                             $('#nama_tamu').val(response.data.nama);
+                            if (response.data.instansi) {
+                                $('#instansi').val(response.data.instansi);
+                            }
                             showAppToast('success', 'Data pegawai ditemukan: ' + response.data.nama);
                         } else {
                             showAppToast('info', 'NIP/NIK tidak terdaftar di database pegawai, silakan ketik nama secara manual.');
@@ -312,59 +311,6 @@
             stopWebcam();
         });
     });
-
-    // Step Navigation
-    function nextStep(step) {
-        if (currentStep === 1) {
-            let nik = $('#nik').val();
-            let nama = $('#nama_tamu').val();
-            let hp = $('#no_hp').val();
-            let instansi = $('#instansi').val();
-            let alamat = $('#alamat').val();
-            let keperluan = $('#keperluan').val();
-
-            if (nik.length < 16 || nik.length > 18) {
-                $('#nik').addClass('is-invalid');
-                $('#nik-error').show();
-                return;
-            } else {
-                $('#nik').removeClass('is-invalid');
-                $('#nik-error').hide();
-            }
-
-            if (!nama || !hp || !instansi || !alamat || !keperluan) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Formulir Belum Lengkap',
-                    text: 'Silakan isi semua bidang bertanda bintang (*) sebelum melanjutkan.',
-                    confirmButtonColor: '#4f46e5'
-                });
-                return;
-            }
-        }
-
-        $('#step' + currentStep).removeClass('active');
-        currentStep = step;
-        $('#step' + currentStep).addClass('active');
-
-        // Resize signature canvas when step 2 opens
-        if (step === 2) {
-            setTimeout(function() {
-                const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                const sigCanvas = document.getElementById('sig-pad');
-                sigCanvas.width = sigCanvas.offsetWidth * ratio;
-                sigCanvas.height = sigCanvas.offsetHeight * ratio;
-                sigCanvas.getContext("2d").scale(ratio, ratio);
-                sigPad.clear();
-            }, 100);
-        }
-    }
-
-    function prevStep(step) {
-        $('#step' + currentStep).removeClass('active');
-        currentStep = step;
-        $('#step' + currentStep).addClass('active');
-    }
 
     function clearSignature() {
         if (sigPad) {

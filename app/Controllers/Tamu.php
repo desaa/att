@@ -33,7 +33,7 @@ class Tamu extends BaseController
         $query = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
+                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
                               ->join('subbagian', 'subbagian.kode_opd = buku_tamu.kode_opd AND subbagian.kode_bagian = buku_tamu.kode_bagian AND subbagian.kode_subbagian = buku_tamu.kode_subbagian', 'left')
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left');
 
@@ -86,7 +86,7 @@ class Tamu extends BaseController
         $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, pegawai.jabatan, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
+                              ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
                               ->join('subbagian', 'subbagian.kode_opd = buku_tamu.kode_opd AND subbagian.kode_bagian = buku_tamu.kode_bagian AND subbagian.kode_subbagian = buku_tamu.kode_subbagian', 'left')
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left')
                               ->find($id);
@@ -192,10 +192,9 @@ class Tamu extends BaseController
         }
 
         // Generate uploads directory
-        $uploadPath = FCPATH . 'uploads/tamu/';
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
+        $sigUploadPath = getUploadPath('ttd');
+        $photoUploadPath = getUploadPath('foto');
+        $docUploadPath = getUploadPath('file');
 
         // Generate reference number
         $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
@@ -207,9 +206,9 @@ class Tamu extends BaseController
             list($type, $data) = explode(';', $sigData);
             list(, $data)      = explode(',', $data);
             $decodedData       = base64_decode($data);
-            
+
             $sigFile = 'sig_' . uniqid() . '.png';
-            file_put_contents($uploadPath . $sigFile, $decodedData);
+            file_put_contents($sigUploadPath . $sigFile, $decodedData);
         }
 
         // Handle selfie/photo
@@ -219,9 +218,9 @@ class Tamu extends BaseController
             list($type, $data) = explode(';', $photoData);
             list(, $data)      = explode(',', $data);
             $decodedData       = base64_decode($data);
-            
+
             $photoFile = 'photo_' . uniqid() . '.png';
-            file_put_contents($uploadPath . $photoFile, $decodedData);
+            file_put_contents($photoUploadPath . $photoFile, $decodedData);
         }
 
         // Handle document upload
@@ -229,7 +228,7 @@ class Tamu extends BaseController
         $document = $this->request->getFile('dokumen_pendukung');
         if ($document && $document->isValid() && !$document->hasMoved()) {
             $docFile = $document->getRandomName();
-            $document->move($uploadPath, $docFile);
+            $document->move($docUploadPath, $docFile);
         }
 
         // Fetch visited employee details to store their exact department/unit
@@ -278,7 +277,7 @@ class Tamu extends BaseController
         $agendaModel = new AgendaModel();
         $agenda = $agendaModel->select('agenda.*, opd.nama_opd, bagian.nama_bagian')
                               ->join('opd', 'opd.kode_opd = agenda.kode_opd')
-                              ->join('bagian', 'bagian.kode_opd = agenda.kode_opd AND bagian.kode_bagian = agenda.kode_bagian')
+                              ->join('bagian', 'bagian.kode_opd = agenda.kode_opd AND bagian.kode_bagian = agenda.kode_bagian', 'left')
                               ->where('qr_code', $token)
                               ->first();
 
@@ -294,8 +293,9 @@ class Tamu extends BaseController
 
         // 3. Verify date range
         $now = date('Y-m-d H:i:s');
-        if ($now < $agenda['tanggal_mulai']) {
-            return view('tamu/public_error', ['message' => 'Agenda ini belum dimulai. Masa aktif dimulai pada: ' . date('d F Y, H:i', strtotime($agenda['tanggal_mulai']))]);
+        $registrationStartTime = date('Y-m-d H:i:s', strtotime($agenda['tanggal_mulai'] . ' -2 hours'));
+        if ($now < $registrationStartTime) {
+            return view('tamu/public_error', ['message' => 'Pendaftaran belum dibuka. Dibuka pada: ' . date('d F Y, H:i', strtotime($registrationStartTime))]);
         }
         if ($now > $agenda['tanggal_selesai']) {
             return view('tamu/public_error', ['message' => 'Agenda ini telah berakhir pada: ' . date('d F Y, H:i', strtotime($agenda['tanggal_selesai']))]);
@@ -316,6 +316,13 @@ class Tamu extends BaseController
             return redirect()->back()->with('error', 'Aksi tidak diizinkan. Agenda tidak aktif.');
         }
 
+        // Verify registration time window (2 hours before start until end time)
+        $now = date('Y-m-d H:i:s');
+        $registrationStartTime = date('Y-m-d H:i:s', strtotime($agenda['tanggal_mulai'] . ' -2 hours'));
+        if ($now < $registrationStartTime || $now > $agenda['tanggal_selesai']) {
+            return redirect()->back()->with('error', 'Waktu pendaftaran telah ditutup.');
+        }
+
         $rules = [
             'nama_tamu'         => 'required|max_length[255]',
             'nik'               => 'required|numeric|min_length[16]|max_length[18]',
@@ -328,10 +335,7 @@ class Tamu extends BaseController
         }
 
         // Generate uploads directory
-        $uploadPath = FCPATH . 'uploads/tamu/';
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
+        $sigUploadPath = getUploadPath('ttd');
 
         // Generate reference number
         $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
@@ -343,18 +347,20 @@ class Tamu extends BaseController
             list($type, $data) = explode(';', $sigData);
             list(, $data)      = explode(',', $data);
             $decodedData       = base64_decode($data);
-            
+
             $sigFile = 'sig_' . uniqid() . '.png';
-            file_put_contents($uploadPath . $sigFile, $decodedData);
+            file_put_contents($sigUploadPath . $sigFile, $decodedData);
         }
 
         $bukuTamuModel = new BukuTamuModel();
         
+        $pegawaiInstansi = $this->getPegawaiInstansiByNip($this->request->getPost('nik'));
+
         $data = [
             'id_agenda'         => $agenda['id_agenda'],
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
             'nik'               => $this->request->getPost('nik'),
-            'instansi'          => $this->request->getPost('instansi'),
+            'instansi'          => $pegawaiInstansi ?: $this->request->getPost('instansi'),
             'no_hp'             => $this->request->getPost('no_hp'),
             'alamat'            => '-',
             'keperluan'         => null,
@@ -367,7 +373,7 @@ class Tamu extends BaseController
             'tanda_tangan'      => $sigFile,
             'dokumen_pendukung' => null,
             'no_referensi'      => $noReferensi,
-            'status_kunjungan'  => 'menunggu', // Self service starts as "menunggu" approval
+            'status_kunjungan'  => 'berlangsung',
             'created_by'        => null,
         ];
 
@@ -382,10 +388,11 @@ class Tamu extends BaseController
     public function konfirmasi($noReferensi)
     {
         $bukuTamuModel = new BukuTamuModel();
-        $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian')
+        $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
                               ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
+                              ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left')
                               ->where('no_referensi', $noReferensi)
                               ->first();
 
@@ -452,7 +459,7 @@ class Tamu extends BaseController
                 $params['kode_subbagian'] = $selectedSubbagian;
             }
             
-            $url = base_url('tamu/register-umum?' . http_build_query($params));
+            $url = base_url('tamu/register-umum?' . http_build_query(['q' => $this->encryptQrParams($params)]));
             $data['qr_image'] = (new QRCode())->render($url);
             $data['qr_url'] = $url;
             
@@ -490,10 +497,12 @@ class Tamu extends BaseController
     public function registerUmum($kodeOpd = null, $kodeBagian = null)
     {
         $db = \Config\Database::connect('simpelgan');
+
+        $qrParams = $this->getQrParamsFromRequest();
         
-        $kodeOpd = $this->request->getGet('kode_opd') ?: $kodeOpd;
-        $kodeBagian = $this->request->getGet('kode_bagian') ?: $kodeBagian;
-        $kodeSubbagian = $this->request->getGet('kode_subbagian');
+        $kodeOpd = $qrParams['kode_opd'] ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
+        $kodeBagian = $qrParams['kode_bagian'] ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
+        $kodeSubbagian = $qrParams['kode_subbagian'] ?? $this->request->getGet('kode_subbagian');
         
         if (!$kodeOpd) {
             return view('tamu/public_error', ['message' => 'OPD tidak valid.']);
@@ -548,15 +557,18 @@ class Tamu extends BaseController
             'pegawais'       => $pegawais,
             'kode_opd'       => $kodeOpd,
             'kode_bagian'    => $kodeBagian,
-            'kode_subbagian' => $kodeSubbagian
+            'kode_subbagian' => $kodeSubbagian,
+            'qr_token'       => $this->request->getGet('q')
         ]);
     }
 
     public function storeRegisterUmum($kodeOpd = null, $kodeBagian = null)
     {
-        $kodeOpd = $this->request->getGet('kode_opd') ?: $kodeOpd;
-        $kodeBagian = $this->request->getGet('kode_bagian') ?: $kodeBagian;
-        $kodeSubbagian = $this->request->getGet('kode_subbagian');
+        $qrParams = $this->getQrParamsFromRequest();
+
+        $kodeOpd = $qrParams['kode_opd'] ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
+        $kodeBagian = $qrParams['kode_bagian'] ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
+        $kodeSubbagian = $qrParams['kode_subbagian'] ?? $this->request->getGet('kode_subbagian');
         
         $db = \Config\Database::connect('simpelgan');
         $opd = $db->table('master_opd')->where('id_gov', 'P2300001')->where('kode_opd', $kodeOpd)->get()->getRowArray();
@@ -577,16 +589,15 @@ class Tamu extends BaseController
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
         }
-        
-        // Generate uploads directory
-        $uploadPath = FCPATH . 'uploads/tamu/';
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
-        
+
+        // Generate uploads directory with new structure
+        $sigUploadPath = getUploadPath('ttd');
+        $photoUploadPath = getUploadPath('foto');
+        $docUploadPath = getUploadPath('file');
+
         // Generate reference number
         $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
-        
+
         // Handle signature (base64 PNG) - REQUIRED
         $sigFile = null;
         $sigData = $this->request->getPost('tanda_tangan');
@@ -594,13 +605,13 @@ class Tamu extends BaseController
             list($type, $data) = explode(';', $sigData);
             list(, $data)      = explode(',', $data);
             $decodedData       = base64_decode($data);
-            
+
             $sigFile = 'sig_' . uniqid() . '.png';
-            file_put_contents($uploadPath . $sigFile, $decodedData);
+            file_put_contents($sigUploadPath . $sigFile, $decodedData);
         } else {
             return redirect()->back()->withInput()->with('error', 'Tanda tangan wajib diisi.');
         }
-        
+
         // Handle photo (base64 PNG) - REQUIRED
         $photoFile = null;
         $photoData = $this->request->getPost('foto_tamu');
@@ -608,19 +619,19 @@ class Tamu extends BaseController
             list($type, $data) = explode(';', $photoData);
             list(, $data)      = explode(',', $data);
             $decodedData       = base64_decode($data);
-            
+
             $photoFile = 'photo_' . uniqid() . '.png';
-            file_put_contents($uploadPath . $photoFile, $decodedData);
+            file_put_contents($photoUploadPath . $photoFile, $decodedData);
         } else {
             return redirect()->back()->withInput()->with('error', 'Foto wajib diisi.');
         }
-        
+
         // Handle document upload - OPTIONAL
         $docFile = null;
         $document = $this->request->getFile('dokumen_pendukung');
         if ($document && $document->isValid() && !$document->hasMoved()) {
             $docFile = $document->getRandomName();
-            $document->move($uploadPath, $docFile);
+            $document->move($docUploadPath, $docFile);
         }
         
         // Dynamically sync target employee to default database to support local table joins in guest book screens
@@ -631,11 +642,13 @@ class Tamu extends BaseController
         
         $bukuTamuModel = new BukuTamuModel();
         
+        $pegawaiInstansi = $this->getPegawaiInstansiByNip($this->request->getPost('nik'));
+
         $data = [
             'id_agenda'         => null,
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
             'nik'               => $this->request->getPost('nik'),
-            'instansi'          => $this->request->getPost('instansi'),
+            'instansi'          => $pegawaiInstansi ?: $this->request->getPost('instansi'),
             'no_hp'             => $this->request->getPost('no_hp'),
             'alamat'            => $this->request->getPost('alamat'),
             'keperluan'         => $this->request->getPost('keperluan'),
@@ -648,7 +661,7 @@ class Tamu extends BaseController
             'tanda_tangan'      => $sigFile,
             'dokumen_pendukung' => $docFile,
             'no_referensi'      => $noReferensi,
-            'status_kunjungan'  => 'menunggu',
+            'status_kunjungan'  => 'berlangsung',
             'created_by'        => null,
         ];
         
@@ -658,5 +671,117 @@ class Tamu extends BaseController
         log_activity("Pendaftaran Tamu Umum Mandiri: {$data['nama_tamu']} (#{$noReferensi})", 'buku_tamu', $insertId);
         
         return redirect()->to('tamu/konfirmasi/' . $noReferensi);
+    }
+
+    private function encryptQrParams(array $params): string
+    {
+        $plainText = json_encode(array_filter($params), JSON_UNESCAPED_SLASHES);
+        $key = $this->getQrEncryptionKey();
+        $iv = random_bytes(16);
+        $cipherText = openssl_encrypt($plainText, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        $mac = hash_hmac('sha256', $iv . $cipherText, $key, true);
+
+        return rtrim(strtr(base64_encode($iv . $mac . $cipherText), '+/', '-_'), '=');
+    }
+
+    private function getQrParamsFromRequest(): array
+    {
+        $token = $this->request->getGet('q');
+        if (!$token) {
+            return [];
+        }
+
+        $base64 = strtr($token, '-_', '+/');
+        $base64 .= str_repeat('=', (4 - strlen($base64) % 4) % 4);
+        $raw = base64_decode($base64, true);
+        if ($raw === false || strlen($raw) <= 48) {
+            return [];
+        }
+
+        $iv = substr($raw, 0, 16);
+        $mac = substr($raw, 16, 32);
+        $cipherText = substr($raw, 48);
+        $key = $this->getQrEncryptionKey();
+
+        if (!hash_equals($mac, hash_hmac('sha256', $iv . $cipherText, $key, true))) {
+            return [];
+        }
+
+        $plainText = openssl_decrypt($cipherText, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+        $params = json_decode($plainText ?: '', true);
+
+        return is_array($params) ? $params : [];
+    }
+
+    private function getQrEncryptionKey(): string
+    {
+        $configuredKey = (string) (config('Encryption')->key ?: env('encryption.key') ?: '');
+        if (str_starts_with($configuredKey, 'hex2bin:')) {
+            $configuredKey = hex2bin(substr($configuredKey, 8)) ?: '';
+        } elseif (str_starts_with($configuredKey, 'base64:')) {
+            $configuredKey = base64_decode(substr($configuredKey, 7), true) ?: '';
+        }
+
+        return hash('sha256', $configuredKey ?: base_url() . 'qr-tamu-umum', true);
+    }
+
+    private function getPegawaiInstansiByNip(?string $nip): ?string
+    {
+        if (!$nip || !preg_match('/^\d{18}$/', $nip)) {
+            return null;
+        }
+
+        $db = \Config\Database::connect('simpelgan');
+        $pegawai = $db->table('data_pegawai dp')
+                      ->select('mo.nama_opd')
+                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
+                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+                      ->where('dp.nip', $nip);
+        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($pegawai);
+        $pegawai = $pegawai->get()->getRowArray();
+
+        return $pegawai['nama_opd'] ?? null;
+    }
+
+    /**
+     * Serve file upload yang ada di luar public/ secara aman.
+     * Dipanggil via route: tamu/uploads/{type}/{year}/{month}/{filename}
+     */
+    public function serveUpload(string $type, string $year, string $month, string $filename): \CodeIgniter\HTTP\Response
+    {
+        // Validasi tipe
+        if (!in_array($type, ['foto', 'ttd', 'file'], true)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        // Sanitasi — cegah path traversal
+        $filename = basename(rawurldecode($filename));
+        $year     = preg_replace('/[^0-9]/', '', $year);
+        $month    = preg_replace('/[^0-9]/', '', $month);
+
+        $filePath = dirname(FCPATH)
+            . DIRECTORY_SEPARATOR . 'uploads'
+            . DIRECTORY_SEPARATOR . $year
+            . DIRECTORY_SEPARATOR . $month
+            . DIRECTORY_SEPARATOR . $type
+            . DIRECTORY_SEPARATOR . $filename;
+
+        if (!is_file($filePath)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        // Batasi akses file dokumen hanya untuk user yang login
+        if ($type === 'file' && !auth()->loggedIn()) {
+            return $this->response->setStatusCode(403)->setBody('Akses ditolak.');
+        }
+
+        $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+        $fileSize = filesize($filePath);
+
+        return $this->response
+            ->setHeader('Content-Type', $mimeType)
+            ->setHeader('Content-Length', (string) $fileSize)
+            ->setHeader('Cache-Control', 'private, max-age=86400')
+            ->setBody(file_get_contents($filePath));
     }
 }

@@ -84,10 +84,6 @@
                                 <span class="badge bg-indigo-subtle text-indigo px-3 py-2 rounded-pill font-monospace" style="font-size: 0.85rem;">
                                     <?= esc($nama_bagian) ?>
                                 </span>
-                            <?php else: ?>
-                                <span class="badge bg-indigo-subtle text-indigo px-3 py-2 rounded-pill font-monospace" style="font-size: 0.85rem;">
-                                    Semua Bagian / Bidang
-                                </span>
                             <?php endif; ?>
                         </div>
                         <div class="fw-semibold text-muted small mb-4"><?= esc($nama_opd) ?></div>

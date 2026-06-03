@@ -120,8 +120,12 @@
                                     <div class="small text-secondary">P: <?= $t['waktu_pulang'] ? date('d M Y, H:i', strtotime($t['waktu_pulang'])) : '-' ?></div>
                                 </td>
                                 <td>
-                                    <div class="text-truncate" style="max-width: 200px;" title="<?= esc($t['keperluan'] ?? '-') ?>">
-                                        <?= esc($t['keperluan'] ?? '-') ?>
+                                    <div class="text-truncate" style="max-width: 200px;" title="<?php if (!empty($t['id_agenda']) && !empty($t['nama_agenda'])): ?>Menghadiri <?= esc($t['nama_agenda']) ?><?php else: ?><?= esc($t['keperluan'] ?? '-') ?><?php endif; ?>">
+                                        <?php if (!empty($t['id_agenda']) && !empty($t['nama_agenda'])): ?>
+                                            <i class="bi bi-calendar-event me-1"></i>Menghadiri <?= esc($t['nama_agenda']) ?>
+                                        <?php else: ?>
+                                            <?= esc($t['keperluan'] ?? '-') ?>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>

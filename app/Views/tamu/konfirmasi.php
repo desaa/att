@@ -33,8 +33,17 @@
                 </div>
                 
                 <div class="col-6">
-                    <span class="text-secondary d-block">Pegawai Tujuan</span>
-                    <strong class="text-dark"><i class="bi bi-person-fill me-1 text-secondary"></i><?= !empty($tamu['nama_pegawai']) ? esc($tamu['nama_pegawai']) : 'Belum ditentukan' ?></strong>
+                    <span class="text-secondary d-block">
+                        <?= !empty($tamu['id_agenda']) ? 'Agenda' : 'Pegawai Tujuan' ?>
+                    </span>
+                    <strong class="text-dark">
+                        <i class="bi <?= !empty($tamu['id_agenda']) ? 'bi-calendar-event me-1 text-secondary' : 'bi-person-fill me-1 text-secondary' ?>"></i>
+                        <?php if (!empty($tamu['id_agenda'])): ?>
+                            <?= esc($tamu['nama_agenda'] ?? 'Agenda') ?>
+                        <?php else: ?>
+                            <?= !empty($tamu['nama_pegawai']) ? esc($tamu['nama_pegawai']) : 'Belum ditentukan' ?>
+                        <?php endif; ?>
+                    </strong>
                 </div>
                 <div class="col-6">
                     <span class="text-secondary d-block">Unit Kerja Tujuan</span>

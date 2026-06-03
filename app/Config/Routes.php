@@ -28,6 +28,11 @@ $routes->group('', ['filter' => 'session'], static function ($routes) {
         // Manual input form for Admin
         $routes->get('input', 'Tamu::inputManual');
         $routes->post('input', 'Tamu::storeManual');
+
+        // ✅ Serve file upload (foto/ttd ada di luar public/, diakses via proxy)
+        // URL: tamu/uploads/{type}/{year}/{month}/{filename}
+        // type 'file' (dokumen) hanya bisa diakses user yang login (dicek di controller)
+        $routes->get('uploads/(:segment)/(:segment)/(:segment)/(:segment)', 'Tamu::serveUpload/$1/$2/$3/$4');
     });
 
     // Agenda CRUD
@@ -107,6 +112,10 @@ $routes->group('tamu', static function ($routes) {
     $routes->get('register-umum/(:any)/(:any)', 'Tamu::registerUmum/$1/$2');
     $routes->post('register-umum/(:any)/(:any)/store', 'Tamu::storeRegisterUmum/$1/$2');
     $routes->get('konfirmasi/(:any)', 'Tamu::konfirmasi/$1');
+
+    // ✅ Route serveUpload juga perlu ada di public group
+    // agar foto/ttd tamu yang belum login tetap bisa tampil di halaman konfirmasi
+    $routes->get('uploads/(:segment)/(:segment)/(:segment)/(:segment)', 'Tamu::serveUpload/$1/$2/$3/$4');
 });
 
 // Pegawai Portal - Public routes (Login/Logout)
@@ -128,7 +137,9 @@ $routes->group('pegawai-portal', ['filter' => 'pegawai-auth'], static function (
 // AJAX APIs (Searchable selects for employees/sections)
 $routes->get('api/bagian/(:any)', 'Api::getBagian/$1');
 $routes->get('api/subbagian/(:any)/(:any)', 'Api::getSubbagian/$1/$2');
+$routes->get('api/pegawai/(:any)', 'Api::getPegawaiByOpd/$1');
 $routes->get('api/pegawai/(:any)/(:any)', 'Api::getPegawai/$1/$2');
+$routes->get('api/pegawai/(:any)/(:any)/(:any)', 'Api::getPegawaiBySubbagian/$1/$2/$3');
 $routes->get('api/pegawai-filtered', 'Api::getPegawaiFiltered');
 $routes->get('api/pegawai-all', 'Api::getPegawaiAll');
 $routes->get('api/pegawai-by-nip/(:any)', 'Api::getPegawaiByNip/$1');

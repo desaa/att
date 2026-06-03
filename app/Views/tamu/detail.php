@@ -116,7 +116,7 @@
             <div class="glass-card-body text-center">
                 <?php 
                     $fileExt = strtolower(pathinfo($tamu['dokumen_pendukung'], PATHINFO_EXTENSION));
-                    $filePath = base_url('uploads/tamu/' . $tamu['dokumen_pendukung']);
+                    $filePath = getUploadUrl($tamu['dokumen_pendukung'], 'file');
                 ?>
                 <?php if ($fileExt === 'pdf'): ?>
                     <div class="p-4 border rounded bg-light text-center">
@@ -169,7 +169,7 @@
                 <div class="mb-4 text-center">
                     <span class="text-secondary d-block small mb-2 text-start fw-semibold">Foto Selfie / Capture Kamera</span>
                     <?php if ($tamu['foto']): ?>
-                        <img src="<?= base_url('uploads/tamu/' . $tamu['foto']) ?>" alt="Foto Selfie Tamu" class="img-fluid rounded border shadow-sm w-100" style="aspect-ratio: 4/3; object-fit: cover;">
+                        <img src="<?= getUploadUrl($tamu['foto'], 'foto') ?>" alt="Foto Selfie Tamu" class="img-fluid rounded border shadow-sm w-100" style="aspect-ratio: 4/3; object-fit: cover;">
                     <?php else: ?>
                         <div class="d-flex flex-column align-items-center justify-content-center border rounded bg-light" style="aspect-ratio: 4/3;">
                             <i class="bi bi-camera-fill text-muted fs-1 mb-2"></i>
@@ -183,7 +183,7 @@
                     <span class="text-secondary d-block small mb-2 text-start fw-semibold">Tanda Tangan Digital</span>
                     <?php if ($tamu['tanda_tangan']): ?>
                         <div class="p-2 border rounded bg-white shadow-sm d-inline-block w-100">
-                            <img src="<?= base_url('uploads/tamu/' . $tamu['tanda_tangan']) ?>" alt="Tanda Tangan Tamu" class="img-fluid" style="max-height: 120px;">
+                            <img src="<?= getUploadUrl($tamu['tanda_tangan'], 'ttd') ?>" alt="Tanda Tangan Tamu" class="img-fluid" style="max-height: 120px;">
                         </div>
                     <?php else: ?>
                         <div class="d-flex flex-column align-items-center justify-content-center border rounded bg-light py-4" style="height: 120px;">

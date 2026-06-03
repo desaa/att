@@ -65,7 +65,7 @@ class Dashboard extends BaseController
         $recentGuests = $recentQuery->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian')
                                     ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                                     ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd')
-                                    ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian')
+                                    ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
                                     ->orderBy('buku_tamu.waktu_datang', 'DESC')
                                     ->limit(5)
                                     ->get()
