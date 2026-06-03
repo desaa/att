@@ -131,3 +131,7 @@ _modules/*
 
 # Temporary debug/test scripts
 test_db.php
+
+# User uploads directory
+/uploads/
+uploads/
