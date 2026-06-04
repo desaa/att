@@ -50,7 +50,22 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label text-muted small fw-semibold mb-0">No. HP</label>
-                            <div class="fw-semibold text-dark"><?= esc($tamu['no_hp']) ?></div>
+                            <div class="fw-semibold text-dark">
+                                <?php if (!empty($tamu['no_hp'])): ?>
+                                    <?php 
+                                        $waNumberDetail = $tamu['no_hp'];
+                                        if (str_starts_with($waNumberDetail, '0')) {
+                                            $waNumberDetail = '62' . substr($waNumberDetail, 1);
+                                        }
+                                        $waNumberDetail = preg_replace('/[^0-9]/', '', $waNumberDetail);
+                                    ?>
+                                    <a href="https://wa.me/<?= $waNumberDetail ?>" target="_blank" class="text-decoration-none text-success">
+                                        <i class="bi bi-whatsapp me-1"></i><?= esc($tamu['no_hp']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                     <div class="col-12">

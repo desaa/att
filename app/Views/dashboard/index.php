@@ -6,7 +6,7 @@
 <div class="row mb-4 align-items-center">
     <div class="col-sm-6">
         <h2 class="fw-bold text-dark">Dashboard</h2>
-        <p class="text-secondary mb-0">Selamat datang di Panel E-GuestBook Diskominfo Kabupaten Grobogan.</p>
+        <p class="text-secondary mb-0">Selamat datang di Panel e-AdaTamu Diskominfo Kabupaten Grobogan.</p>
     </div>
     <?php if ($isSuperadmin): ?>
     <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
@@ -125,8 +125,11 @@
                 <h5 class="fw-bold text-dark mb-0"><i class="bi bi-list-stars me-2 text-indigo"></i>Kunjungan Terbaru</h5>
                 <div class="d-flex align-items-center gap-2">
                     <form action="<?= base_url('dashboard') ?>" method="GET" class="d-flex align-items-center gap-2">
-                        <input type="text" name="bulan" id="filterBulan" class="form-control form-control-sm" value="<?= esc($filterBulan) ?>" placeholder="Pilih Bulan">
-                        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+                        <div class="input-group input-group-sm" style="max-width: 180px;">
+                            <span class="input-group-text bg-white border-end-0 text-secondary"><i class="bi bi-calendar3"></i></span>
+                            <input type="text" name="bulan" id="filterBulan" class="form-control form-control-sm border-start-0 ps-0" value="<?= esc($filterBulan) ?>" placeholder="Pilih Bulan">
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Filter</button>
                     </form>
                     <a href="<?= base_url('tamu') ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">Lihat Semua</a>
                 </div>

@@ -34,7 +34,7 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="<?= base_url('pegawai-portal/dashboard') ?>" class="sidebar-brand">
-                <i class="bi bi-person-vcard-fill me-2"></i>Portal Pegawai
+                <img src="<?= base_url('assets/app-logo/logotextputih.png') ?>" alt="Logo" style="height: 60px; width: auto; object-fit: contain;">
             </a>
             <button class="btn d-lg-none text-white p-0" onclick="toggleSidebar()">
                 <i class="bi bi-x-lg fs-5"></i>

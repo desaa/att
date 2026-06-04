@@ -23,13 +23,13 @@
                     <table class="table table-hover align-middle mb-0" id="agendaTable">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4" style="width: 80px;">No</th>
+                                <th class="ps-4" style="width: 50px;">No</th>
                                 <th>Nama Agenda</th>
                                 <th>Masa Aktif</th>
                                 <th>Lokasi &amp; PJ</th>
                                 <th>Unit Kerja</th>
                                 <th>Status</th>
-                                <th class="text-end pe-4" style="width: 200px;">Aksi</th>
+                                <th class="text-end pe-4 text-nowrap" style="width: 240px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,7 +57,7 @@
                                         <?= esc($agenda['status']) ?>
                                     </span>
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 text-nowrap">
                                     <button class="btn btn-sm btn-info text-white border me-1" 
                                             onclick="showQrModal('<?= esc($agenda['nama_agenda'], 'js') ?>', '<?= esc($agenda['nama_bagian'], 'js') ?>', '<?= esc($agenda['qr_image']) ?>', '<?= base_url('tamu/agenda/' . $agenda['qr_code']) ?>')" 
                                             title="Tampilkan QR Code">

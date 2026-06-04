@@ -76,7 +76,22 @@
                             </td>
                             <td>
                                 <div class="fw-semibold"><?= esc($tamu['nama_tamu']) ?></div>
-                                <div class="small text-secondary"><?= esc($tamu['no_hp'] ?? '-') ?></div>
+                                <div class="small text-secondary">
+                                    <?php if (!empty($tamu['no_hp'])): ?>
+                                        <?php 
+                                            $waNumber = $tamu['no_hp'];
+                                            if (str_starts_with($waNumber, '0')) {
+                                                $waNumber = '62' . substr($waNumber, 1);
+                                            }
+                                            $waNumber = preg_replace('/[^0-9]/', '', $waNumber);
+                                        ?>
+                                        <a href="https://wa.me/<?= $waNumber ?>" target="_blank" class="text-decoration-none text-success">
+                                            <i class="bi bi-whatsapp me-1"></i><?= esc($tamu['no_hp']) ?>
+                                        </a>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </div>
                                 <?php if (empty($tamu['id_pegawai_tujuan'])): ?>
                                     <span class="badge rounded-pill bg-info-subtle text-info-emphasis mt-1">Belum ada pegawai tujuan</span>
                                 <?php endif; ?>

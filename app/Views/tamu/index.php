@@ -129,7 +129,18 @@
                                 <td>
                                     <div class="fw-semibold text-dark"><?= esc($tamu['nama_tamu']) ?></div>
                                     <div class="small text-secondary"><?= esc($tamu['instansi']) ?></div>
-                                    <div class="text-muted small" style="font-size: 0.725rem;"><i class="bi bi-telephone-fill me-1"></i><?= esc($tamu['no_hp']) ?></div>
+                                    <?php 
+                                        $waNumberIndex = $tamu['no_hp'];
+                                        if (str_starts_with($waNumberIndex, '0')) {
+                                            $waNumberIndex = '62' . substr($waNumberIndex, 1);
+                                        }
+                                        $waNumberIndex = preg_replace('/[^0-9]/', '', $waNumberIndex);
+                                    ?>
+                                    <div class="text-muted small" style="font-size: 0.725rem;">
+                                        <a href="https://wa.me/<?= $waNumberIndex ?>" target="_blank" class="text-decoration-none text-success fw-semibold">
+                                            <i class="bi bi-whatsapp me-1"></i><?= esc($tamu['no_hp']) ?>
+                                        </a>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="small fw-semibold text-dark"><i class="bi bi-arrow-login me-1"></i>Datang: <?= date('d M Y, H:i', strtotime($tamu['waktu_datang'])) ?></div>

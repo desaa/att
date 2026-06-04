@@ -326,9 +326,10 @@ class Tamu extends BaseController
     public function selfService($token)
     {
         $agendaModel = new AgendaModel();
-        $agenda = $agendaModel->select('agenda.*, opd.nama_opd, bagian.nama_bagian')
+        $agenda = $agendaModel->select('agenda.*, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian')
                               ->join('opd', 'opd.kode_opd = agenda.kode_opd')
                               ->join('bagian', 'bagian.kode_opd = agenda.kode_opd AND bagian.kode_bagian = agenda.kode_bagian', 'left')
+                              ->join('subbagian', 'subbagian.kode_opd = agenda.kode_opd AND subbagian.kode_bagian = agenda.kode_bagian AND subbagian.kode_subbagian = agenda.kode_subbagian', 'left')
                               ->where('qr_code', $token)
                               ->first();
 
@@ -398,11 +399,23 @@ class Tamu extends BaseController
         
         $pegawaiInstansi = $this->getPegawaiInstansiByNip($this->request->getPost('nik'));
 
+        $finalInstansi = '';
+        if ($pegawaiInstansi) {
+            $parts = array_filter([
+                $pegawaiInstansi['instansi'] ?? null,
+                $pegawaiInstansi['bidang'] ?? null,
+                $pegawaiInstansi['subbidang'] ?? null
+            ]);
+            $finalInstansi = implode(' - ', $parts);
+        } else {
+            $finalInstansi = $this->request->getPost('instansi');
+        }
+
         $data = [
             'id_agenda'         => $agenda['id_agenda'],
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
             'nik'               => $this->request->getPost('nik'),
-            'instansi'          => $pegawaiInstansi ?: $this->request->getPost('instansi'),
+            'instansi'          => $finalInstansi,
             'no_hp'             => $this->request->getPost('no_hp'),
             'alamat'            => '-',
             'keperluan'         => null,
@@ -430,10 +443,11 @@ class Tamu extends BaseController
     public function konfirmasi($noReferensi)
     {
         $bukuTamuModel = new BukuTamuModel();
-        $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, agenda.nama_agenda')
+        $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
                               ->join('pegawai', 'pegawai.id = buku_tamu.id_pegawai_tujuan', 'left')
                               ->join('opd', 'opd.kode_opd = buku_tamu.kode_opd', 'left')
                               ->join('bagian', 'bagian.kode_opd = buku_tamu.kode_opd AND bagian.kode_bagian = buku_tamu.kode_bagian', 'left')
+                              ->join('subbagian', 'subbagian.kode_opd = buku_tamu.kode_opd AND subbagian.kode_bagian = buku_tamu.kode_bagian AND subbagian.kode_subbagian = buku_tamu.kode_subbagian', 'left')
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left')
                               ->where('no_referensi', $noReferensi)
                               ->first();
@@ -598,32 +612,12 @@ class Tamu extends BaseController
             $builder->where('dp.kode_subbagian', $kodeSubbagian);
         }
         
-        $bagians = $db->table('master_bagian')
-                      ->where('id_gov', 'P2300001')
-                      ->where('kode_opd', $kodeOpd)
-                      ->orderBy('nama_bagian', 'ASC')
-                      ->get()
-                      ->getResultArray();
-
-        $subbagians = [];
-        if ($kodeBagian) {
-            $subbagians = $db->table('master_subbagian')
-                             ->where('id_gov', 'P2300001')
-                             ->where('kode_opd', $kodeOpd)
-                             ->where('kode_bagian', $kodeBagian)
-                             ->orderBy('nama_subbagian', 'ASC')
-                             ->get()
-                             ->getResultArray();
-        }
-
         $pegawais = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
                                  
         return view('tamu/register_umum', [
             'opd'            => $opd,
             'bagian'         => $bagian,
             'subbagian'      => $subbagian,
-            'bagians'        => $bagians,
-            'subbagians'     => $subbagians,
             'pegawais'       => $pegawais,
             'kode_opd'       => $kodeOpd,
             'kode_bagian'    => $kodeBagian,
@@ -698,11 +692,8 @@ class Tamu extends BaseController
         $pegawaiModel = new PegawaiModel();
         $pegawai = $idPegawaiTujuan ? $pegawaiModel->find($idPegawaiTujuan) : null;
 
-        $formBagian = $this->request->getPost('kode_bagian') ?: null;
-        $formSubbagian = $this->request->getPost('kode_subbagian') ?: null;
-
-        $finalBagian = $kodeBagian ?: ($pegawai ? $pegawai['kode_bagian'] : $formBagian);
-        $finalSubbagian = $kodeSubbagian ?: (($pegawai && $pegawai['kode_subbagian']) ? $pegawai['kode_subbagian'] : $formSubbagian);
+        $finalBagian = $kodeBagian ?: ($pegawai ? $pegawai['kode_bagian'] : null);
+        $finalSubbagian = $kodeSubbagian ?: (($pegawai && $pegawai['kode_subbagian']) ? $pegawai['kode_subbagian'] : null);
 
         $bukuTamuModel = new BukuTamuModel();
         

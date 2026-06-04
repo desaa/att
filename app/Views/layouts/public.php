@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $this->renderSection('title') ?> - Buku Tamu Elektronik</title>
+    <title><?= $this->renderSection('title') ?> - e-AdaTamu</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,10 +50,14 @@
     <div class="public-container">
         <!-- Header -->
         <div class="text-center mb-4">
-            <h1 class="public-logo mb-1">
-                <i class="bi bi-person-vcard-fill me-2"></i>E-GuestBook
-            </h1>
-            <p class="text-muted">Dinas Komunikasi dan Informatika Kabupaten Grobogan</p>
+            <div class="mb-2">
+                <img src="<?= base_url('assets/app-logo/logotextbiru.png') ?>" alt="e-AdaTamu Logo" style="height: 100px; width: auto; object-fit: contain;">
+            </div>
+            <?php if ($this->renderSection('subtitle')): ?>
+                <?= $this->renderSection('subtitle') ?>
+            <?php else: ?>
+                <p class="text-muted">Dinas Komunikasi dan Informatika Kabupaten Grobogan</p>
+            <?php endif; ?>
         </div>
         
         <!-- Main Form Content -->

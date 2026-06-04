@@ -69,7 +69,9 @@
             <div class="glass-card-body p-4 p-md-5">
                 <?php if (isset($qr_image)): ?>
                     <div id="printArea" class="p-4 bg-white border rounded shadow-sm d-inline-block">
-                        <h3 class="fw-bold text-dark mb-1">E-GUESTBOOK</h3>
+                        <div class="mb-2">
+                            <img src="<?= base_url('assets/app-logo/logotextbiru.png') ?>" alt="e-AdaTamu Logo" style="height: 40px; width: auto; object-fit: contain;">
+                        </div>
                         <h5 class="fw-bold text-secondary mb-2">Pendaftaran Tamu Umum</h5>
                         
                         <hr class="my-3" style="border-top: 2px dashed #cbd5e1;">

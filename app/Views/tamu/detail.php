@@ -33,7 +33,7 @@
                         <strong class="text-dark fs-5"><?= esc($tamu['nama_tamu']) ?></strong>
                     </div>
                     <div class="col-md-6">
-                        <span class="text-secondary d-block small">Nomor Induk Kependudukan (NIK)</span>
+                        <span class="text-secondary d-block small">NIP/NIK</span>
                         <strong class="text-dark font-monospace fs-6"><?= esc($tamu['nik']) ?></strong>
                     </div>
                     
@@ -43,7 +43,18 @@
                     </div>
                     <div class="col-md-6">
                         <span class="text-secondary d-block small">No. HP (WhatsApp)</span>
-                        <strong class="text-dark font-monospace"><?= esc($tamu['no_hp']) ?></strong>
+                        <?php 
+                            $waNumberDetail = $tamu['no_hp'];
+                            if (str_starts_with($waNumberDetail, '0')) {
+                                $waNumberDetail = '62' . substr($waNumberDetail, 1);
+                            }
+                            $waNumberDetail = preg_replace('/[^0-9]/', '', $waNumberDetail);
+                        ?>
+                        <strong class="text-dark font-monospace">
+                            <a href="https://wa.me/<?= $waNumberDetail ?>" target="_blank" class="text-decoration-none text-success">
+                                <i class="bi bi-whatsapp me-1"></i><?= esc($tamu['no_hp']) ?>
+                            </a>
+                        </strong>
                     </div>
                     
                     <div class="col-12">
@@ -64,10 +75,12 @@
                     </div>
                     <div class="col-md-6">
                         <span class="text-secondary d-block small">Unit Kerja / Bagian</span>
-                        <strong class="text-dark"><?= esc($tamu['nama_bagian']) ?></strong>
-                        <div class="small text-muted"><?= esc($tamu['nama_opd']) ?></div>
+                        <strong class="text-dark d-block"><?= esc($tamu['nama_opd']) ?></strong>
+                        <?php if ($tamu['nama_bagian']): ?>
+                            <div class="text-muted small"><i class="bi bi-arrow-return-right me-1"></i><?= esc($tamu['nama_bagian']) ?></div>
+                        <?php endif; ?>
                         <?php if ($tamu['nama_subbagian']): ?>
-                            <div class="text-muted small" style="font-size: 0.8rem;"><i class="bi bi-arrow-return-right me-1"></i><?= esc($tamu['nama_subbagian']) ?></div>
+                            <div class="text-muted small" style="font-size: 0.8rem; padding-left: 1rem;"><i class="bi bi-arrow-return-right me-1"></i><?= esc($tamu['nama_subbagian']) ?></div>
                         <?php endif; ?>
                     </div>
                     

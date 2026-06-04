@@ -6,7 +6,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <h2 class="fw-bold text-dark">Audit Log Sistem</h2>
-        <p class="text-secondary mb-0">Catatan riwayat aktivitas pengguna di dalam sistem Buku Tamu Elektronik.</p>
+        <p class="text-secondary mb-0">Catatan riwayat aktivitas pengguna di dalam sistem e-AdaTamu.</p>
     </div>
 </div>
 

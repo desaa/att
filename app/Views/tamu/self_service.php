@@ -2,6 +2,23 @@
 
 <?= $this->section('title') ?>Pendaftaran Tamu Mandiri<?= $this->endSection() ?>
 
+<?= $this->section('subtitle') ?>
+    <h5 class="text-indigo fw-bold mb-1">
+        <?php 
+            if (!empty($agenda['nama_subbagian'])) {
+                echo esc($agenda['nama_subbagian']);
+            } elseif (!empty($agenda['nama_bagian'])) {
+                echo esc($agenda['nama_bagian']);
+            } else {
+                echo esc($agenda['nama_opd']);
+            }
+        ?>
+    </h5>
+    <?php if (!empty($agenda['nama_subbagian']) || !empty($agenda['nama_bagian'])): ?>
+        <p class="text-muted small mb-0"><?= esc($agenda['nama_opd']) ?></p>
+    <?php endif; ?>
+<?= $this->endSection() ?>
+
 <?= $this->section('styles') ?>
 <style>
     .signature-container {

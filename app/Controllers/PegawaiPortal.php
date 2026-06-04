@@ -21,6 +21,10 @@ class PegawaiPortal extends BaseController
     {
         return $query->where('buku_tamu.kode_opd', $this->pegawaiKodeOpd)
                      ->groupStart()
+                         ->where('buku_tamu.id_agenda', null)
+                         ->orWhere('buku_tamu.id_agenda', 0)
+                     ->groupEnd()
+                     ->groupStart()
                          ->where('buku_tamu.id_pegawai_tujuan', $this->pegawaiId)
                          ->orGroupStart()
                              ->where('buku_tamu.id_pegawai_tujuan', null)
@@ -32,6 +36,7 @@ class PegawaiPortal extends BaseController
 
     private function canAccessTamu(array $tamu): bool
     {
+        if (!empty($tamu['id_agenda'])) return false;
         return $tamu['id_pegawai_tujuan'] == $this->pegawaiId || $this->canClaimTamu($tamu);
     }
 

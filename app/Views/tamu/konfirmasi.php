@@ -2,6 +2,23 @@
 
 <?= $this->section('title') ?>Konfirmasi Pendaftaran<?= $this->endSection() ?>
 
+<?= $this->section('subtitle') ?>
+    <h5 class="text-indigo fw-bold mb-1">
+        <?php 
+            if (!empty($tamu['nama_subbagian'])) {
+                echo esc($tamu['nama_subbagian']);
+            } elseif (!empty($tamu['nama_bagian'])) {
+                echo esc($tamu['nama_bagian']);
+            } else {
+                echo esc($tamu['nama_opd']);
+            }
+        ?>
+    </h5>
+    <?php if (!empty($tamu['nama_subbagian']) || !empty($tamu['nama_bagian'])): ?>
+        <p class="text-muted small mb-0"><?= esc($tamu['nama_opd']) ?></p>
+    <?php endif; ?>
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <div class="glass-card shadow-lg border-0" style="border-radius: 1.25rem;">
     <div class="glass-card-body p-5 text-center">
@@ -11,7 +28,7 @@
         </div>
         
         <h3 class="fw-bold text-dark mb-1">Pendaftaran Berhasil!</h3>
-        <p class="text-secondary small mb-4">Terima kasih, data kunjungan Anda telah disimpan ke sistem Buku Tamu Elektronik.</p>
+        <p class="text-secondary small mb-4">Terima kasih, data kunjungan Anda telah disimpan ke sistem e-AdaTamu.</p>
         
         <!-- Ticket Card -->
         <div class="card border-0 bg-light p-4 text-start mb-4 shadow-sm" style="border-radius: 0.75rem; border-left: 5px solid #10b981 !important;">
@@ -47,7 +64,16 @@
                 </div>
                 <div class="col-6">
                     <span class="text-secondary d-block">Unit Kerja Tujuan</span>
-                    <strong class="text-dark"><?= esc($tamu['nama_bagian'] ?: ($tamu['nama_opd'] ?? 'Belum ditentukan')) ?></strong>
+                    <strong class="text-dark">
+                        <?php 
+                            $unitParts = array_filter([
+                                $tamu['nama_opd'] ?? null,
+                                $tamu['nama_bagian'] ?? null,
+                                $tamu['nama_subbagian'] ?? null
+                            ]);
+                            echo esc(implode(' - ', $unitParts) ?: 'Belum ditentukan');
+                        ?>
+                    </strong>
                 </div>
 
                 <div class="col-6">

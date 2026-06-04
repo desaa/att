@@ -9,6 +9,11 @@ class Home extends BaseController
         if (auth()->loggedIn()) {
             return redirect()->to('dashboard');
         }
-        return redirect()->to('login');
+        
+        if (session()->get('pegawai_logged_in')) {
+            return redirect()->to('pegawai-portal/dashboard');
+        }
+        
+        return redirect()->to('pegawai-portal/login');
     }
 }

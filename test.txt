@@ -1,4 +1,12 @@
-1. Pada cetakan QR tamu, apabila hanya kode OPD, maka hilangkan "Semua Bagian / Bidang"
-2. Link QR agar di ecrypt : http://localhost:8081/tamu/register-umum?kode_opd=28
-3. Pada Form Buku Tamu Mandiri, jika data pegawai ditemukan, maka instansi juga mengambil dari database
-4. Form Buku Tamu Mandiri jadikan 1 halaman.
+Revisi :
+Saya ingin merubah sedikit model capctha puzle geser. Buat seperti ini :
+- saat awal, capctha di hidden
+- setelah diisikan username dan password, ketika di klik "Masuk" baru capctha ditampilkan.
+- setelah capctha berhasil, baru login berhasil.
+
+pada bagian Detail data tamu (contoh : http://localhost:8081/tamu/detail/70jwcn2d) :
+1. Label "Nomor Induk Kependudukan (NIK)" diubah menjadi "NIP/NIK"
+2. pada bagian Unit Kerja pegawai yang dituju, diurutkan dari OPD, Bidang dan Subbidang
+
+## Role Pegawai 
+1. Daftar tamu agenda seharusnya tidak muncul pada daftar tamu pegawai.

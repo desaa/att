@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $this->renderSection('title') ?> - Buku Tamu Elektronik</title>
+    <title><?= $this->renderSection('title') ?> - e-AdaTamu</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,8 +37,8 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="<?= base_url('dashboard') ?>" class="sidebar-brand">
-                <i class="bi bi-person-vcard-fill me-2"></i>E-GuestBook
+            <a href="<?= base_url('dashboard') ?>" class="sidebar-brand d-flex align-items-center gap-2">
+                <img src="<?= base_url('assets/app-logo/logotextputih.png') ?>" alt="Logo" style="height: 60px; width: auto; object-fit: contain;">
             </a>
             <button class="btn d-lg-none text-white p-0" onclick="toggleSidebar()">
                 <i class="bi bi-x-lg fs-5"></i>
