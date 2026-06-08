@@ -6,9 +6,8 @@ class Api extends BaseController
 {
     public function getBagian($kodeOpd)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $bagians = $db->table('master_bagian')
-                      ->where('id_gov', 'P2300001')
+        $db = \Config\Database::connect();
+        $bagians = $db->table('bagian')
                       ->where('kode_opd', $kodeOpd)
                       ->orderBy('nama_bagian', 'ASC')
                       ->get()
@@ -18,9 +17,8 @@ class Api extends BaseController
 
     public function getSubbagian($kodeOpd, $kodeBagian)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $subbagians = $db->table('master_subbagian')
-                         ->where('id_gov', 'P2300001')
+        $db = \Config\Database::connect();
+        $subbagians = $db->table('subbagian')
                          ->where('kode_opd', $kodeOpd)
                          ->where('kode_bagian', $kodeBagian)
                          ->orderBy('nama_subbagian', 'ASC')
@@ -31,43 +29,40 @@ class Api extends BaseController
 
     public function getPegawaiByOpd($kodeOpd)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
-                      ->where('dp.kode_opd', $kodeOpd);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
-        $pegawai = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+        $db = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
+                      ->where('dp.kode_opd', $kodeOpd)
+                      ->where('dp.status', 'aktif')
+                      ->orderBy('dp.nama', 'ASC')
+                      ->get()->getResultArray();
         return $this->response->setJSON($pegawai);
     }
 
     public function getPegawai($kodeOpd, $kodeBagian)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+        $db = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
                       ->where('dp.kode_opd', $kodeOpd)
-                      ->where('dp.kode_bagian', $kodeBagian);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
-        $pegawai = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+                      ->where('dp.kode_bagian', $kodeBagian)
+                      ->where('dp.status', 'aktif')
+                      ->orderBy('dp.nama', 'ASC')
+                      ->get()->getResultArray();
         return $this->response->setJSON($pegawai);
     }
 
     public function getPegawaiBySubbagian($kodeOpd, $kodeBagian, $kodeSubbagian)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
+        $db = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
                       ->where('dp.kode_opd', $kodeOpd)
                       ->where('dp.kode_bagian', $kodeBagian)
-                      ->where('dp.kode_subbagian', $kodeSubbagian);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
-        $pegawai = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+                      ->where('dp.kode_subbagian', $kodeSubbagian)
+                      ->where('dp.status', 'aktif')
+                      ->orderBy('dp.nama', 'ASC')
+                      ->get()->getResultArray();
         return $this->response->setJSON($pegawai);
     }
 
@@ -77,12 +72,10 @@ class Api extends BaseController
         $kodeBagian = $this->request->getGet('kode_bagian');
         $kodeSubbagian = $this->request->getGet('kode_subbagian');
 
-        $db = \Config\Database::connect('simpelgan');
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left');
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
+        $db = \Config\Database::connect();
+        $builder = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
+                      ->where('dp.status', 'aktif');
 
         if ($kodeOpd) {
             $builder->where('dp.kode_opd', $kodeOpd);
@@ -94,35 +87,34 @@ class Api extends BaseController
             $builder->where('dp.kode_subbagian', $kodeSubbagian);
         }
 
-        $pegawai = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+        $pegawai = $builder->orderBy('dp.nama', 'ASC')->get()->getResultArray();
         return $this->response->setJSON($pegawai);
     }
 
     public function getPegawaiAll()
     {
-        $db = \Config\Database::connect('simpelgan');
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left');
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
-        $pegawai = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+        $db = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian')
+                      ->where('dp.status', 'aktif')
+                      ->orderBy('dp.nama', 'ASC')
+                      ->get()->getResultArray();
         return $this->response->setJSON($pegawai);
     }
 
     public function getPegawaiByNip($nip)
     {
-        $db = \Config\Database::connect('simpelgan');
-        $pegawai = $db->table('data_pegawai dp')
-                      ->select('dp.nip, dp.nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, mo.nama_opd, mb.nama_bagian, ms.nama_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
-                      ->join('master_bagian mb', 'mb.kode_bagian = dp.kode_bagian AND mb.kode_opd = dp.kode_opd AND mb.id_gov = dp.id_gov', 'left')
-                      ->join('master_subbagian ms', 'ms.kode_subbagian = dp.kode_subbagian AND ms.kode_bagian = dp.kode_bagian AND ms.kode_opd = dp.kode_opd AND ms.id_gov = dp.id_gov', 'left')
-                      ->where('dp.nip', $nip);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($pegawai);
-        $pegawai = $pegawai->get()
+        $db = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
+                      ->select('dp.nip, dp.nama as nama_lengkap, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, mo.nama_opd, mb.nama_bagian, ms.nama_subbagian')
+                      ->join('opd mo', 'mo.kode_opd = dp.kode_opd', 'left')
+                      ->join('bagian mb', 'mb.kode_bagian = dp.kode_bagian AND mb.kode_opd = dp.kode_opd', 'left')
+                      ->join('subbagian ms', 'ms.kode_subbagian = dp.kode_subbagian AND ms.kode_bagian = dp.kode_bagian AND ms.kode_opd = dp.kode_opd', 'left')
+                      ->where('dp.nip', $nip)
+                      ->where('dp.status', 'aktif')
+                      ->get()
                       ->getRowArray();
+                      
         if ($pegawai) {
             return $this->response->setJSON([
                 'status' => 'success',

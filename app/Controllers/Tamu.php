@@ -23,9 +23,8 @@ class Tamu extends BaseController
         
         $bukuTamuModel = new BukuTamuModel();
         $pegawaiModel = new PegawaiModel();
-        $db = \Config\Database::connect('simpelgan');
+        $db = \Config\Database::connect();
 
-        // Filter parameters
         $startDate = $this->request->getGet('start_date');
         $endDate = $this->request->getGet('end_date');
         $status = $this->request->getGet('status');
@@ -41,72 +40,38 @@ class Tamu extends BaseController
                               ->join('subbagian', 'subbagian.kode_opd = buku_tamu.kode_opd AND subbagian.kode_bagian = buku_tamu.kode_bagian AND subbagian.kode_subbagian = buku_tamu.kode_subbagian', 'left')
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left');
 
-        // Scope by department if Admin
         if (!$isSuperadmin) {
             $query->where('buku_tamu.kode_opd', $user->kode_opd);
-            if (!empty($user->kode_bagian)) {
-                $query->where('buku_tamu.kode_bagian', $user->kode_bagian);
-            }
-            if (!empty($user->kode_subbagian)) {
-                $query->where('buku_tamu.kode_subbagian', $user->kode_subbagian);
-            }
+            if (!empty($user->kode_bagian)) $query->where('buku_tamu.kode_bagian', $user->kode_bagian);
+            if (!empty($user->kode_subbagian)) $query->where('buku_tamu.kode_subbagian', $user->kode_subbagian);
         }
 
-        // Apply filters
-        if ($startDate) {
-            $query->where('buku_tamu.waktu_datang >=', $startDate . ' 00:00:00');
-        }
-        if ($endDate) {
-            $query->where('buku_tamu.waktu_datang <=', $endDate . ' 23:59:59');
-        }
-        if ($status) {
-            $query->where('buku_tamu.status_kunjungan', $status);
-        }
-        if ($pegawaiId) {
-            $query->where('buku_tamu.id_pegawai_tujuan', $pegawaiId);
-        }
-        
-        if ($isSuperadmin && $kodeOpdFilter) {
-            $query->where('buku_tamu.kode_opd', $kodeOpdFilter);
-        }
-        if ($kodeBagianFilter) {
-            $query->where('buku_tamu.kode_bagian', $kodeBagianFilter);
-        }
-        if ($kodeSubbagianFilter) {
-            $query->where('buku_tamu.kode_subbagian', $kodeSubbagianFilter);
-        }
+        if ($startDate) $query->where('buku_tamu.waktu_datang >=', $startDate . ' 00:00:00');
+        if ($endDate) $query->where('buku_tamu.waktu_datang <=', $endDate . ' 23:59:59');
+        if ($status) $query->where('buku_tamu.status_kunjungan', $status);
+        if ($pegawaiId) $query->where('buku_tamu.id_pegawai_tujuan', $pegawaiId);
+        if ($isSuperadmin && $kodeOpdFilter) $query->where('buku_tamu.kode_opd', $kodeOpdFilter);
+        if ($kodeBagianFilter) $query->where('buku_tamu.kode_bagian', $kodeBagianFilter);
+        if ($kodeSubbagianFilter) $query->where('buku_tamu.kode_subbagian', $kodeSubbagianFilter);
 
         $data['tamus'] = $query->orderBy('buku_tamu.waktu_datang', 'DESC')->findAll();
         
-        // Fetch target employees for filter dropdown
         $pegBuilder = $pegawaiModel->where('status', 'aktif');
         if (!$isSuperadmin) {
             $pegBuilder->where('kode_opd', $user->kode_opd);
-            if (!empty($user->kode_bagian)) {
-                $pegBuilder->where('kode_bagian', $user->kode_bagian);
-            }
-            if (!empty($user->kode_subbagian)) {
-                $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
-            }
+            if (!empty($user->kode_bagian)) $pegBuilder->where('kode_bagian', $user->kode_bagian);
+            if (!empty($user->kode_subbagian)) $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
         }
-        if ($isSuperadmin && $kodeOpdFilter) {
-            $pegBuilder->where('kode_opd', $kodeOpdFilter);
-        }
-        if ($kodeBagianFilter) {
-            $pegBuilder->where('kode_bagian', $kodeBagianFilter);
-        }
-        if ($kodeSubbagianFilter) {
-            $pegBuilder->where('kode_subbagian', $kodeSubbagianFilter);
-        }
+        if ($isSuperadmin && $kodeOpdFilter) $pegBuilder->where('kode_opd', $kodeOpdFilter);
+        if ($kodeBagianFilter) $pegBuilder->where('kode_bagian', $kodeBagianFilter);
+        if ($kodeSubbagianFilter) $pegBuilder->where('kode_subbagian', $kodeSubbagianFilter);
         $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
 
         $data['isSuperadmin'] = $isSuperadmin;
         $data['userKodeOpd'] = !$isSuperadmin ? $user->kode_opd : null;
-        
         if ($isSuperadmin) {
-            $data['opds'] = $db->table('master_opd')->orderBy('nama_opd', 'ASC')->get()->getResultArray();
+            $data['opds'] = $db->table('opd')->orderBy('nama_opd', 'ASC')->get()->getResultArray();
         }
-
         $data['filters'] = [
             'start_date'     => $startDate,
             'end_date'       => $endDate,
@@ -123,13 +88,10 @@ class Tamu extends BaseController
     public function detail($hash)
     {
         $id = decode_id($hash);
-        if (!$id) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
-        }
+        if (!$id) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
 
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
-        
         $bukuTamuModel = new BukuTamuModel();
         
         $tamu = $bukuTamuModel->select('buku_tamu.*, pegawai.nama as nama_pegawai, pegawai.jabatan, opd.nama_opd, bagian.nama_bagian, subbagian.nama_subbagian, agenda.nama_agenda')
@@ -140,57 +102,38 @@ class Tamu extends BaseController
                               ->join('agenda', 'agenda.id_agenda = buku_tamu.id_agenda', 'left')
                               ->find($id);
 
-        if (!$tamu) {
-            return redirect()->to('tamu')->with('error', 'Data tamu tidak ditemukan.');
-        }
-
-        // Access check
+        if (!$tamu) return redirect()->to('tamu')->with('error', 'Data tamu tidak ditemukan.');
         if (!$isSuperadmin && $tamu['kode_opd'] !== $user->kode_opd) {
             return redirect()->to('tamu')->with('error', 'Anda tidak memiliki hak untuk melihat data tamu ini.');
         }
 
         $data['tamu'] = $tamu;
         $data['isSuperadmin'] = $isSuperadmin;
-
         return view('tamu/detail', $data);
     }
 
     public function updateStatus($hash)
     {
         $id = decode_id($hash);
-        if (!$id) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
-        }
+        if (!$id) throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
 
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
-        
         $bukuTamuModel = new BukuTamuModel();
         $tamu = $bukuTamuModel->find($id);
 
-        if (!$tamu) {
-            return redirect()->to('tamu')->with('error', 'Data tamu tidak ditemukan.');
-        }
-
-        // Access check
+        if (!$tamu) return redirect()->to('tamu')->with('error', 'Data tamu tidak ditemukan.');
         if (!$isSuperadmin && $tamu['kode_opd'] !== $user->kode_opd) {
             return redirect()->to('tamu')->with('error', 'Anda tidak memiliki hak untuk memperbarui tamu ini.');
         }
 
         $newStatus = $this->request->getPost('status_kunjungan');
-        
         if (!in_array($newStatus, ['menunggu', 'berlangsung', 'selesai', 'batal'])) {
             return redirect()->back()->with('error', 'Status kunjungan tidak valid.');
         }
 
-        $updateData = [
-            'status_kunjungan' => $newStatus
-        ];
-
-        // If status completed, set check-out time
-        if ($newStatus === 'selesai') {
-            $updateData['waktu_pulang'] = date('Y-m-d H:i:s');
-        }
+        $updateData = ['status_kunjungan' => $newStatus];
+        if ($newStatus === 'selesai') $updateData['waktu_pulang'] = date('Y-m-d H:i:s');
 
         $bukuTamuModel->update($id, $updateData);
         log_activity("Memperbarui status kunjungan Tamu #{$tamu['no_referensi']} ({$tamu['nama_tamu']}) menjadi: $newStatus", 'buku_tamu', $id);
@@ -202,35 +145,21 @@ class Tamu extends BaseController
     {
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
-        
-        // Manual input is only for Unit Admins
         if ($isSuperadmin) {
-            return redirect()->to('tamu')->with('error', 'Superadmin tidak dapat mengisi buku tamu secara manual. Silakan gunakan akun Admin Unit.');
+            return redirect()->to('tamu')->with('error', 'Superadmin tidak dapat mengisi buku tamu secara manual.');
         }
 
         $pegawaiModel = new PegawaiModel();
-        $pegBuilder = $pegawaiModel->where('kode_opd', $user->kode_opd)
-                                   ->where('status', 'aktif');
-        if (!empty($user->kode_bagian)) {
-            $pegBuilder->where('kode_bagian', $user->kode_bagian);
-        }
-        if (!empty($user->kode_subbagian)) {
-            $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
-        }
+        $pegBuilder = $pegawaiModel->where('kode_opd', $user->kode_opd)->where('status', 'aktif');
+        if (!empty($user->kode_bagian)) $pegBuilder->where('kode_bagian', $user->kode_bagian);
+        if (!empty($user->kode_subbagian)) $pegBuilder->where('kode_subbagian', $user->kode_subbagian);
         $data['pegawais'] = $pegBuilder->orderBy('nama', 'ASC')->findAll();
 
-        // Fetch active agendas for this OPD
         $agendaModel = new AgendaModel();
-        $agendaBuilder = $agendaModel->where('kode_opd', $user->kode_opd)
-                                     ->where('status', 'aktif');
-        if (!empty($user->kode_bagian)) {
-            $agendaBuilder->where('kode_bagian', $user->kode_bagian);
-        }
-        if (!empty($user->kode_subbagian)) {
-            $agendaBuilder->where('kode_subbagian', $user->kode_subbagian);
-        }
-        $data['agendas'] = $agendaBuilder->orderBy('nama_agenda', 'ASC')
-                                         ->findAll();
+        $agendaBuilder = $agendaModel->where('kode_opd', $user->kode_opd)->where('status', 'aktif');
+        if (!empty($user->kode_bagian)) $agendaBuilder->where('kode_bagian', $user->kode_bagian);
+        if (!empty($user->kode_subbagian)) $agendaBuilder->where('kode_subbagian', $user->kode_subbagian);
+        $data['agendas'] = $agendaBuilder->orderBy('nama_agenda', 'ASC')->findAll();
 
         return view('tamu/input_manual', $data);
     }
@@ -238,9 +167,7 @@ class Tamu extends BaseController
     public function storeManual()
     {
         $user = auth()->user();
-        $isSuperadmin = $user->inGroup('superadmin');
-        
-        if ($isSuperadmin) {
+        if ($user->inGroup('superadmin')) {
             return redirect()->to('tamu')->with('error', 'Aksi tidak diizinkan.');
         }
 
@@ -258,36 +185,29 @@ class Tamu extends BaseController
             return redirect()->back()->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
         }
 
-        // Generate uploads directory
-        $sigUploadPath = getUploadPath('ttd');
+        $sigUploadPath   = getUploadPath('ttd');
         $photoUploadPath = getUploadPath('foto');
-        $docUploadPath = getUploadPath('file');
+        $docUploadPath   = getUploadPath('file');
+        $noReferensi     = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
 
-        // Generate reference number
-        $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+        // Decode Sucuri WAF bypass
+        $ttdRaw   = $this->decodeWafBypass($this->request->getPost('tanda_tangan'));
+        $fotoRaw  = $this->decodeWafBypass($this->request->getPost('foto_tamu'));
 
-        // Handle signature
-        $sigFile = $this->saveCompressedImage($this->request->getPost('tanda_tangan'), $sigUploadPath, 'sig');
+        $sigFile   = $this->saveCompressedImage($ttdRaw, $sigUploadPath, 'sig');
+        $photoFile = $this->saveCompressedImage($fotoRaw, $photoUploadPath, 'photo');
 
-        // Handle selfie/photo
-        $photoFile = $this->saveCompressedImage($this->request->getPost('foto_tamu'), $photoUploadPath, 'photo');
-
-        // Handle document upload
-        $docFile = null;
+        $docFile  = null;
         $document = $this->request->getFile('dokumen_pendukung');
         if ($document && $document->isValid() && !$document->hasMoved()) {
             $docFile = $document->getRandomName();
             $document->move($docUploadPath, $docFile);
         }
 
-        // Fetch visited employee details to store their exact department/unit
-        $pegawaiModel = new PegawaiModel();
-        $idPegawaiTujuan = $this->request->getPost('id_pegawai_tujuan');
-        $idPegawaiTujuan = empty($idPegawaiTujuan) ? null : $idPegawaiTujuan;
-        $pegawai = $idPegawaiTujuan ? $pegawaiModel->find($idPegawaiTujuan) : null;
-
-        $idAgenda = $this->request->getPost('id_agenda');
-        $idAgenda = empty($idAgenda) ? null : $idAgenda;
+        $pegawaiModel    = new PegawaiModel();
+        $idPegawaiTujuan = $this->request->getPost('id_pegawai_tujuan') ?: null;
+        $pegawai         = $idPegawaiTujuan ? $pegawaiModel->find($idPegawaiTujuan) : null;
+        $idAgenda        = $this->request->getPost('id_agenda') ?: null;
 
         $bukuTamuModel = new BukuTamuModel();
         $data = [
@@ -299,21 +219,20 @@ class Tamu extends BaseController
             'alamat'            => $this->request->getPost('alamat'),
             'keperluan'         => $this->request->getPost('keperluan'),
             'id_pegawai_tujuan' => $idPegawaiTujuan,
-            'kode_opd'         => $pegawai ? $pegawai['kode_opd'] : $user->kode_opd,
-            'kode_bagian'      => $pegawai ? $pegawai['kode_bagian'] : null,
-            'kode_subbagian'   => ($pegawai && $pegawai['kode_subbagian']) ? $pegawai['kode_subbagian'] : null,
+            'kode_opd'          => $pegawai ? $pegawai['kode_opd'] : $user->kode_opd,
+            'kode_bagian'       => $pegawai ? $pegawai['kode_bagian'] : null,
+            'kode_subbagian'    => ($pegawai && $pegawai['kode_subbagian']) ? $pegawai['kode_subbagian'] : null,
             'waktu_datang'      => date('Y-m-d H:i:s'),
             'foto'              => $photoFile,
             'tanda_tangan'      => $sigFile,
             'dokumen_pendukung' => $docFile,
             'no_referensi'      => $noReferensi,
-            'status_kunjungan'  => empty($idAgenda) ? 'menunggu' : 'berlangsung', // Manual entry without agenda starts as 'menunggu'
+            'status_kunjungan'  => empty($idAgenda) ? 'menunggu' : 'berlangsung',
             'created_by'        => $user->id,
         ];
 
         $bukuTamuModel->insert($data);
         $insertId = $bukuTamuModel->getInsertID();
-        
         log_activity("Mencatat Kunjungan Tamu secara Manual: {$data['nama_tamu']} (#{$noReferensi})", 'buku_tamu', $insertId);
 
         return redirect()->to('tamu/detail/' . $insertId)->with('success', 'Kunjungan tamu berhasil dicatat secara manual!');
@@ -333,17 +252,9 @@ class Tamu extends BaseController
                               ->where('qr_code', $token)
                               ->first();
 
-        // 1. Verify agenda exists
-        if (!$agenda) {
-            return view('tamu/public_error', ['message' => 'Agenda tidak ditemukan atau tautan tidak valid.']);
-        }
+        if (!$agenda) return view('tamu/public_error', ['message' => 'Agenda tidak ditemukan atau tautan tidak valid.']);
+        if ($agenda['status'] !== 'aktif') return view('tamu/public_error', ['message' => 'Agenda ini saat ini sedang tidak aktif.']);
 
-        // 2. Verify status is active
-        if ($agenda['status'] !== 'aktif') {
-            return view('tamu/public_error', ['message' => 'Agenda ini saat ini sedang tidak aktif.']);
-        }
-
-        // 3. Verify date range
         $now = date('Y-m-d H:i:s');
         $registrationStartTime = date('Y-m-d H:i:s', strtotime($agenda['tanggal_mulai'] . ' -2 hours'));
         if ($now < $registrationStartTime) {
@@ -353,10 +264,7 @@ class Tamu extends BaseController
             return view('tamu/public_error', ['message' => 'Agenda ini telah berakhir pada: ' . date('d F Y, H:i', strtotime($agenda['tanggal_selesai']))]);
         }
 
-        return view('tamu/self_service', [
-            'agenda' => $agenda,
-            'token'  => $token
-        ]);
+        return view('tamu/self_service', ['agenda' => $agenda, 'token' => $token]);
     }
 
     public function storeSelfService($token)
@@ -368,7 +276,6 @@ class Tamu extends BaseController
             return redirect()->back()->with('error', 'Aksi tidak diizinkan. Agenda tidak aktif.');
         }
 
-        // Verify registration time window (2 hours before start until end time)
         $now = date('Y-m-d H:i:s');
         $registrationStartTime = date('Y-m-d H:i:s', strtotime($agenda['tanggal_mulai'] . ' -2 hours'));
         if ($now < $registrationStartTime || $now > $agenda['tanggal_selesai']) {
@@ -376,41 +283,33 @@ class Tamu extends BaseController
         }
 
         $rules = [
-            'nama_tamu'         => 'required|max_length[255]',
-            'nik'               => 'required|numeric|min_length[16]|max_length[18]',
-            'instansi'          => 'required|max_length[255]',
-            'no_hp'             => 'required|max_length[50]',
+            'nama_tamu' => 'required|max_length[255]',
+            'nik'       => 'required|numeric|min_length[16]|max_length[18]',
+            'instansi'  => 'required|max_length[255]',
+            'no_hp'     => 'required|max_length[50]',
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
         }
 
-        // Generate uploads directory
         $sigUploadPath = getUploadPath('ttd');
+        $noReferensi   = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
 
-        // Generate reference number
-        $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+        // Decode Sucuri bypass
+        $ttdRaw  = $this->decodeWafBypass($this->request->getPost('tanda_tangan'));
+        $sigFile = $this->saveCompressedImage($ttdRaw, $sigUploadPath, 'sig');
 
-        // Handle signature (base64 PNG -> Compressed JPG)
-        $sigFile = $this->saveCompressedImage($this->request->getPost('tanda_tangan'), $sigUploadPath, 'sig');
-
-        $bukuTamuModel = new BukuTamuModel();
-        
         $pegawaiInstansi = $this->getPegawaiInstansiByNip($this->request->getPost('nik'));
-
-        $finalInstansi = '';
+        $finalInstansi   = '';
         if ($pegawaiInstansi) {
-            $parts = array_filter([
-                $pegawaiInstansi['instansi'] ?? null,
-                $pegawaiInstansi['bidang'] ?? null,
-                $pegawaiInstansi['subbidang'] ?? null
-            ]);
+            $parts = array_filter([$pegawaiInstansi['instansi'] ?? null, $pegawaiInstansi['bidang'] ?? null, $pegawaiInstansi['subbidang'] ?? null]);
             $finalInstansi = implode(' - ', $parts);
         } else {
             $finalInstansi = $this->request->getPost('instansi');
         }
 
+        $bukuTamuModel = new BukuTamuModel();
         $data = [
             'id_agenda'         => $agenda['id_agenda'],
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
@@ -420,9 +319,9 @@ class Tamu extends BaseController
             'alamat'            => '-',
             'keperluan'         => null,
             'id_pegawai_tujuan' => null,
-            'kode_opd'         => $agenda['kode_opd'],
-            'kode_bagian'      => $agenda['kode_bagian'],
-            'kode_subbagian'   => null,
+            'kode_opd'          => $agenda['kode_opd'],
+            'kode_bagian'       => $agenda['kode_bagian'],
+            'kode_subbagian'    => null,
             'waktu_datang'      => date('Y-m-d H:i:s'),
             'foto'              => null,
             'tanda_tangan'      => $sigFile,
@@ -434,7 +333,6 @@ class Tamu extends BaseController
 
         $bukuTamuModel->insert($data);
         $insertId = $bukuTamuModel->getInsertID();
-
         log_activity("Pendaftaran Tamu Mandiri: {$data['nama_tamu']} (#{$noReferensi})", 'buku_tamu', $insertId);
 
         return redirect()->to('tamu/konfirmasi/' . $noReferensi);
@@ -452,9 +350,7 @@ class Tamu extends BaseController
                               ->where('no_referensi', $noReferensi)
                               ->first();
 
-        if (!$tamu) {
-            return view('tamu/public_error', ['message' => 'Nomor referensi pendaftaran tidak ditemukan.']);
-        }
+        if (!$tamu) return view('tamu/public_error', ['message' => 'Nomor referensi pendaftaran tidak ditemukan.']);
 
         return view('tamu/konfirmasi', ['tamu' => $tamu]);
     }
@@ -463,94 +359,59 @@ class Tamu extends BaseController
     {
         $user = auth()->user();
         $isSuperadmin = $user->inGroup('superadmin');
-        
-        $db = \Config\Database::connect('simpelgan');
+        $db = \Config\Database::connect();
         
         $data['isSuperadmin'] = $isSuperadmin;
-        
         $selectedOpd = $isSuperadmin ? $this->request->getGet('kode_opd') : $user->kode_opd;
-        
         $selectedBagian = $this->request->getGet('kode_bagian');
-        if (!$isSuperadmin && !empty($user->kode_bagian)) {
-            $selectedBagian = $user->kode_bagian;
-        }
-        
+        if (!$isSuperadmin && !empty($user->kode_bagian)) $selectedBagian = $user->kode_bagian;
         $selectedSubbagian = $this->request->getGet('kode_subbagian');
-        if (!$isSuperadmin && !empty($user->kode_subbagian)) {
-            $selectedSubbagian = $user->kode_subbagian;
-        }
+        if (!$isSuperadmin && !empty($user->kode_subbagian)) $selectedSubbagian = $user->kode_subbagian;
         
-        $data['selected_opd'] = $selectedOpd;
-        $data['selected_bagian'] = $selectedBagian;
-        $data['selected_subbagian'] = $selectedSubbagian;
+        $data['selected_opd']      = $selectedOpd;
+        $data['selected_bagian']   = $selectedBagian;
+        $data['selected_subbagian']= $selectedSubbagian;
         
         if ($isSuperadmin) {
-            $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+            $data['opds'] = $db->table('opd')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
         } else {
-            $data['opd'] = $db->table('master_opd')->where('id_gov', 'P2300001')->where('kode_opd', $user->kode_opd)->get()->getRowArray();
+            $data['opd'] = $db->table('opd')->where('kode_opd', $user->kode_opd)->get()->getRowArray();
         }
         
-        $data['bagians'] = [];
+        $data['bagians']    = [];
         $data['subbagians'] = [];
         
         if ($selectedOpd) {
-            $data['bagians'] = $db->table('master_bagian')
-                                  ->where('id_gov', 'P2300001')
-                                  ->where('kode_opd', $selectedOpd)
-                                  ->orderBy('nama_bagian', 'ASC')
-                                  ->get()
-                                  ->getResultArray();
+            $data['bagians'] = $db->table('bagian')->where('kode_opd', $selectedOpd)->orderBy('nama_bagian', 'ASC')->get()->getResultArray();
             if ($selectedBagian) {
-                $data['subbagians'] = $db->table('master_subbagian')
-                                        ->where('id_gov', 'P2300001')
-                                        ->where('kode_opd', $selectedOpd)
-                                        ->where('kode_bagian', $selectedBagian)
-                                        ->orderBy('nama_subbagian', 'ASC')
-                                        ->get()
-                                        ->getResultArray();
+                $data['subbagians'] = $db->table('subbagian')->where('kode_opd', $selectedOpd)->where('kode_bagian', $selectedBagian)->orderBy('nama_subbagian', 'ASC')->get()->getResultArray();
             }
         }
         
         $data['qr_image'] = null;
-        $data['qr_url'] = null;
+        $data['qr_url']   = null;
         
         if ($selectedOpd) {
             $params = ['kode_opd' => $selectedOpd];
-            if ($selectedBagian) {
-                $params['kode_bagian'] = $selectedBagian;
-            }
-            if ($selectedSubbagian) {
-                $params['kode_subbagian'] = $selectedSubbagian;
-            }
+            if ($selectedBagian)    $params['kode_bagian']    = $selectedBagian;
+            if ($selectedSubbagian) $params['kode_subbagian'] = $selectedSubbagian;
             
             $url = base_url('tamu/register-umum?' . http_build_query(['q' => $this->encryptQrParams($params)]));
             $data['qr_image'] = (new QRCode())->render($url);
-            $data['qr_url'] = $url;
+            $data['qr_url']   = $url;
             
-            // For displaying descriptive names
-            $opdObj = $db->table('master_opd')->where('id_gov', 'P2300001')->where('kode_opd', $selectedOpd)->get()->getRowArray();
+            $opdObj = $db->table('opd')->where('kode_opd', $selectedOpd)->get()->getRowArray();
             $data['nama_opd'] = $opdObj ? $opdObj['nama_opd'] : '';
             
             $data['nama_bagian'] = '';
             if ($selectedBagian) {
-                $bagianObj = $db->table('master_bagian')
-                                ->where('id_gov', 'P2300001')
-                                ->where('kode_opd', $selectedOpd)
-                                ->where('kode_bagian', $selectedBagian)
-                                ->get()
-                                ->getRowArray();
+                $bagianObj = $db->table('bagian')->where('kode_opd', $selectedOpd)->where('kode_bagian', $selectedBagian)->get()->getRowArray();
                 $data['nama_bagian'] = $bagianObj ? $bagianObj['nama_bagian'] : '';
             }
             
             $data['nama_subbagian'] = '';
             if ($selectedSubbagian) {
-                $subbagianObj = $db->table('master_subbagian')
-                                     ->where('id_gov', 'P2300001')
-                                     ->where('kode_opd', $selectedOpd)
-                                     ->where('kode_bagian', $selectedBagian)
-                                     ->where('kode_subbagian', $selectedSubbagian)
-                                     ->get()
-                                     ->getRowArray();
+                $subbagianObj = $db->table('subbagian')->where('kode_opd', $selectedOpd)->where('kode_bagian', $selectedBagian)->where('kode_subbagian', $selectedSubbagian)->get()->getRowArray();
                 $data['nama_subbagian'] = $subbagianObj ? $subbagianObj['nama_subbagian'] : '';
             }
         }
@@ -560,59 +421,36 @@ class Tamu extends BaseController
 
     public function registerUmum($kodeOpd = null, $kodeBagian = null)
     {
-        $db = \Config\Database::connect('simpelgan');
-
+        $db = \Config\Database::connect();
         $qrParams = $this->getQrParamsFromRequest();
         
-        $kodeOpd = $qrParams['kode_opd'] ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
-        $kodeBagian = $qrParams['kode_bagian'] ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
-        $kodeSubbagian = $qrParams['kode_subbagian'] ?? $this->request->getGet('kode_subbagian');
+        $kodeOpd      = $qrParams['kode_opd']      ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
+        $kodeBagian   = $qrParams['kode_bagian']   ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
+        $kodeSubbagian= $qrParams['kode_subbagian']?? $this->request->getGet('kode_subbagian');
         
-        if (!$kodeOpd) {
-            return view('tamu/public_error', ['message' => 'OPD tidak valid.']);
-        }
+        if (!$kodeOpd) return view('tamu/public_error', ['message' => 'OPD tidak valid.']);
         
-        $opd = $db->table('master_opd')->where('id_gov', 'P2300001')->where('kode_opd', $kodeOpd)->get()->getRowArray();
-        if (!$opd) {
-            return view('tamu/public_error', ['message' => 'OPD tidak valid.']);
-        }
+        $opd = $db->table('opd')->where('kode_opd', $kodeOpd)->get()->getRowArray();
+        if (!$opd) return view('tamu/public_error', ['message' => 'OPD tidak valid.']);
         
         $bagian = null;
         if ($kodeBagian) {
-            $bagian = $db->table('master_bagian')
-                         ->where('id_gov', 'P2300001')
-                         ->where('kode_opd', $kodeOpd)
-                         ->where('kode_bagian', $kodeBagian)
-                         ->get()
-                         ->getRowArray();
+            $bagian = $db->table('bagian')->where('kode_opd', $kodeOpd)->where('kode_bagian', $kodeBagian)->get()->getRowArray();
         }
         
         $subbagian = null;
         if ($kodeOpd && $kodeBagian && $kodeSubbagian) {
-            $subbagian = $db->table('master_subbagian')
-                            ->where('id_gov', 'P2300001')
-                            ->where('kode_opd', $kodeOpd)
-                            ->where('kode_bagian', $kodeBagian)
-                            ->where('kode_subbagian', $kodeSubbagian)
-                            ->get()
-                            ->getRowArray();
+            $subbagian = $db->table('subbagian')->where('kode_opd', $kodeOpd)->where('kode_bagian', $kodeBagian)->where('kode_subbagian', $kodeSubbagian)->get()->getRowArray();
         }
         
-        // Fetch active employees under these department, section, and sub-section active filters
-        $builder = $db->table('data_pegawai dp')
-                      ->select('dp.nip as id, dp.nama_lengkap as nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.kode_jabatan, mj.nama AS jabatan')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
-                      ->where('dp.kode_opd', $kodeOpd);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($builder);
-        if ($kodeBagian) {
-            $builder->where('dp.kode_bagian', $kodeBagian);
-        }
-        if ($kodeSubbagian) {
-            $builder->where('dp.kode_subbagian', $kodeSubbagian);
-        }
-        
-        $pegawais = $builder->orderBy('dp.nama_lengkap', 'ASC')->get()->getResultArray();
+        $builder = $db->table('pegawai dp')
+                      ->select('dp.nip as id, dp.nama, dp.kode_opd, dp.kode_bagian, dp.kode_subbagian, dp.jabatan')
+                      ->join('opd mo', 'mo.kode_opd = dp.kode_opd', 'left')
+                      ->where('dp.kode_opd', $kodeOpd)
+                      ->where('dp.status', 'aktif');
+        if ($kodeBagian)    $builder->where('dp.kode_bagian', $kodeBagian);
+        if ($kodeSubbagian) $builder->where('dp.kode_subbagian', $kodeSubbagian);
+        $pegawais = $builder->orderBy('dp.nama', 'ASC')->get()->getResultArray();
                                  
         return view('tamu/register_umum', [
             'opd'            => $opd,
@@ -629,16 +467,17 @@ class Tamu extends BaseController
     public function storeRegisterUmum($kodeOpd = null, $kodeBagian = null)
     {
         $qrParams = $this->getQrParamsFromRequest();
+        $q = $this->request->getGet('q') ?? '';
 
-        $kodeOpd = $qrParams['kode_opd'] ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
-        $kodeBagian = $qrParams['kode_bagian'] ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
+        $kodeOpd       = $qrParams['kode_opd']       ?? ($this->request->getGet('kode_opd') ?: $kodeOpd);
+        $kodeBagian    = $qrParams['kode_bagian']    ?? ($this->request->getGet('kode_bagian') ?: $kodeBagian);
         $kodeSubbagian = $qrParams['kode_subbagian'] ?? $this->request->getGet('kode_subbagian');
         
-        $db = \Config\Database::connect('simpelgan');
-        $opd = $db->table('master_opd')->where('id_gov', 'P2300001')->where('kode_opd', $kodeOpd)->get()->getRowArray();
+        $db  = \Config\Database::connect();
+        $opd = $db->table('opd')->where('kode_opd', $kodeOpd)->get()->getRowArray();
         
         if (!$opd) {
-            return redirect()->back()->with('error', 'Aksi tidak diizinkan. OPD tidak valid.');
+            return redirect()->to('tamu/register-umum?q=' . urlencode($q))->with('error', 'Aksi tidak diizinkan. OPD tidak valid.');
         }
         
         $rules = [
@@ -652,70 +491,55 @@ class Tamu extends BaseController
         ];
         
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
+            return redirect()->to('tamu/register-umum?q=' . urlencode($q))->with('error', implode('<br>', $this->validator->getErrors()));
         }
 
-        // Generate uploads directory with new structure
-        $sigUploadPath = getUploadPath('ttd');
+        $sigUploadPath   = getUploadPath('ttd');
         $photoUploadPath = getUploadPath('foto');
-        $docUploadPath = getUploadPath('file');
+        $docUploadPath   = getUploadPath('file');
+        $noReferensi     = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
 
-        // Generate reference number
-        $noReferensi = 'REG-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+        // =============================================
+        // DECODE SUCURI WAF BYPASS (foto & tanda tangan)
+        // =============================================
+        $ttdRaw   = $this->decodeWafBypass($this->request->getPost('tanda_tangan'));
+        $fotoRaw  = $this->decodeWafBypass($this->request->getPost('foto_tamu'));
 
-        // Handle signature (base64 PNG -> Compressed JPG) - REQUIRED
-        $sigFile = $this->saveCompressedImage($this->request->getPost('tanda_tangan'), $sigUploadPath, 'sig');
+        $sigFile = $this->saveCompressedImage($ttdRaw, $sigUploadPath, 'sig');
         if (!$sigFile) {
-            return redirect()->back()->withInput()->with('error', 'Tanda tangan wajib diisi.');
+            return redirect()->to('tamu/register-umum?q=' . urlencode($q))->with('error', 'Tanda tangan wajib diisi.');
         }
 
-        // Handle photo (base64 PNG -> Compressed JPG) - REQUIRED
-        $photoFile = $this->saveCompressedImage($this->request->getPost('foto_tamu'), $photoUploadPath, 'photo');
+        $photoFile = $this->saveCompressedImage($fotoRaw, $photoUploadPath, 'photo');
         if (!$photoFile) {
-            return redirect()->back()->withInput()->with('error', 'Foto wajib diisi.');
+            return redirect()->to('tamu/register-umum?q=' . urlencode($q))->with('error', 'Foto wajib diisi.');
         }
 
-        // Handle document upload - OPTIONAL
-        $docFile = null;
+        $docFile  = null;
         $document = $this->request->getFile('dokumen_pendukung');
         if ($document && $document->isValid() && !$document->hasMoved()) {
             $docFile = $document->getRandomName();
             $document->move($docUploadPath, $docFile);
         }
         
-        // Dynamically sync target employee to default database to support local table joins in guest book screens
         $idPegawaiTujuan = $this->request->getPost('id_pegawai_tujuan') ?: null;
-        if ($idPegawaiTujuan) {
-            \App\Helpers\SimpelganSyncHelper::syncSinglePegawai($idPegawaiTujuan);
-        }
-        
-        $pegawaiModel = new PegawaiModel();
-        $pegawai = $idPegawaiTujuan ? $pegawaiModel->find($idPegawaiTujuan) : null;
+        $pegawaiModel    = new PegawaiModel();
+        $pegawai         = $idPegawaiTujuan ? $pegawaiModel->find($idPegawaiTujuan) : null;
 
-        $finalBagian = $kodeBagian ?: ($pegawai ? $pegawai['kode_bagian'] : null);
+        $finalBagian    = $kodeBagian    ?: ($pegawai ? $pegawai['kode_bagian'] : null);
         $finalSubbagian = $kodeSubbagian ?: (($pegawai && $pegawai['kode_subbagian']) ? $pegawai['kode_subbagian'] : null);
 
-        $bukuTamuModel = new BukuTamuModel();
-        
         $pegawaiInstansi = $this->getPegawaiInstansiByNip($this->request->getPost('nik'));
-
-        $finalInstansi = '';
+        $finalInstansi   = '';
         if ($pegawaiInstansi) {
-            $parts = array_filter([
-                $pegawaiInstansi['instansi'] ?? null,
-                $pegawaiInstansi['bidang'] ?? null,
-                $pegawaiInstansi['subbidang'] ?? null
-            ]);
+            $parts = array_filter([$pegawaiInstansi['instansi'] ?? null, $pegawaiInstansi['bidang'] ?? null, $pegawaiInstansi['subbidang'] ?? null]);
             $finalInstansi = implode(' - ', $parts);
         } else {
-            $parts = array_filter([
-                $this->request->getPost('instansi'),
-                $this->request->getPost('bidang'),
-                $this->request->getPost('subbidang')
-            ]);
+            $parts = array_filter([$this->request->getPost('instansi'), $this->request->getPost('bidang'), $this->request->getPost('subbidang')]);
             $finalInstansi = implode(' - ', $parts);
         }
 
+        $bukuTamuModel = new BukuTamuModel();
         $data = [
             'id_agenda'         => null,
             'nama_tamu'         => $this->request->getPost('nama_tamu'),
@@ -725,9 +549,9 @@ class Tamu extends BaseController
             'alamat'            => $this->request->getPost('alamat'),
             'keperluan'         => $this->request->getPost('keperluan'),
             'id_pegawai_tujuan' => $idPegawaiTujuan,
-            'kode_opd'         => $kodeOpd,
-            'kode_bagian'      => $finalBagian,
-            'kode_subbagian'   => $finalSubbagian,
+            'kode_opd'          => $kodeOpd,
+            'kode_bagian'       => $finalBagian,
+            'kode_subbagian'    => $finalSubbagian,
             'waktu_datang'      => date('Y-m-d H:i:s'),
             'foto'              => $photoFile,
             'tanda_tangan'      => $sigFile,
@@ -739,19 +563,46 @@ class Tamu extends BaseController
         
         $bukuTamuModel->insert($data);
         $insertId = $bukuTamuModel->getInsertID();
-        
         log_activity("Pendaftaran Tamu Umum Mandiri: {$data['nama_tamu']} (#{$noReferensi})", 'buku_tamu', $insertId);
         
         return redirect()->to('tamu/konfirmasi/' . $noReferensi);
     }
 
+    // ==========================================
+    // PRIVATE HELPERS
+    // ==========================================
+
+    /**
+     * Decode data yang di-encode di frontend untuk bypass Sucuri WAF.
+     * Jika sudah berupa data:image langsung, kembalikan apa adanya.
+     */
+    private function decodeWafBypass(?string $encoded): ?string
+{
+    if (!$encoded) return null;
+
+    // Sudah data:image lengkap — tidak perlu decode
+    if (str_starts_with($encoded, 'data:image')) return $encoded;
+
+    // Format baru: IMG:base64data (strip prefix, reconstruct data URI)
+    if (str_starts_with($encoded, 'IMG:')) {
+        $base64 = substr($encoded, 4);
+        return 'data:image/png;base64,' . $base64;
+    }
+
+    // Fallback lama: url-safe base64
+    $padded  = $encoded . str_repeat('=', (4 - strlen($encoded) % 4) % 4);
+    $decoded = base64_decode(strtr($padded, '-_', '+/'), true);
+    if ($decoded === false) return $encoded;
+    return urldecode($decoded);
+}
+
     private function encryptQrParams(array $params): string
     {
-        $plainText = json_encode(array_filter($params), JSON_UNESCAPED_SLASHES);
-        $key = $this->getQrEncryptionKey();
-        $iv = random_bytes(16);
+        $plainText  = json_encode(array_filter($params), JSON_UNESCAPED_SLASHES);
+        $key        = $this->getQrEncryptionKey();
+        $iv         = random_bytes(16);
         $cipherText = openssl_encrypt($plainText, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-        $mac = hash_hmac('sha256', $iv . $cipherText, $key, true);
+        $mac        = hash_hmac('sha256', $iv . $cipherText, $key, true);
 
         return rtrim(strtr(base64_encode($iv . $mac . $cipherText), '+/', '-_'), '=');
     }
@@ -759,28 +610,22 @@ class Tamu extends BaseController
     private function getQrParamsFromRequest(): array
     {
         $token = $this->request->getGet('q');
-        if (!$token) {
-            return [];
-        }
+        if (!$token) return [];
 
         $base64 = strtr($token, '-_', '+/');
         $base64 .= str_repeat('=', (4 - strlen($base64) % 4) % 4);
         $raw = base64_decode($base64, true);
-        if ($raw === false || strlen($raw) <= 48) {
-            return [];
-        }
+        if ($raw === false || strlen($raw) <= 48) return [];
 
-        $iv = substr($raw, 0, 16);
-        $mac = substr($raw, 16, 32);
+        $iv         = substr($raw, 0, 16);
+        $mac        = substr($raw, 16, 32);
         $cipherText = substr($raw, 48);
-        $key = $this->getQrEncryptionKey();
+        $key        = $this->getQrEncryptionKey();
 
-        if (!hash_equals($mac, hash_hmac('sha256', $iv . $cipherText, $key, true))) {
-            return [];
-        }
+        if (!hash_equals($mac, hash_hmac('sha256', $iv . $cipherText, $key, true))) return [];
 
         $plainText = openssl_decrypt($cipherText, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-        $params = json_decode($plainText ?: '', true);
+        $params    = json_decode($plainText ?: '', true);
 
         return is_array($params) ? $params : [];
     }
@@ -799,25 +644,22 @@ class Tamu extends BaseController
 
     private function getPegawaiInstansiByNip(?string $nip): ?array
     {
-        if (!$nip || !preg_match('/^\d{18}$/', $nip)) {
-            return null;
-        }
+        if (!$nip || !preg_match('/^\d{18}$/', $nip)) return null;
 
-        $db = \Config\Database::connect('simpelgan');
-        $pegawai = $db->table('data_pegawai dp')
+        $db     = \Config\Database::connect();
+        $pegawai = $db->table('pegawai dp')
                       ->select('mo.nama_opd, mb.nama_bagian, ms.nama_subbagian')
-                      ->join('master_jabatan mj', 'mj.kode_jabatan = dp.kode_jabatan AND mj.id_gov = dp.id_gov', 'left')
-                      ->join('master_opd mo', 'mo.kode_opd = dp.kode_opd AND mo.id_gov = dp.id_gov', 'left')
-                      ->join('master_bagian mb', 'mb.kode_bagian = dp.kode_bagian AND mb.kode_opd = dp.kode_opd AND mb.id_gov = dp.id_gov', 'left')
-                      ->join('master_subbagian ms', 'ms.kode_subbagian = dp.kode_subbagian AND ms.kode_bagian = dp.kode_bagian AND ms.kode_opd = dp.kode_opd AND ms.id_gov = dp.id_gov', 'left')
-                      ->where('dp.nip', $nip);
-        \App\Helpers\SimpelganSyncHelper::applySimpelganPegawaiScope($pegawai);
-        $pegawai = $pegawai->get()->getRowArray();
+                      ->join('opd mo', 'mo.kode_opd = dp.kode_opd', 'left')
+                      ->join('bagian mb', 'mb.kode_bagian = dp.kode_bagian AND mb.kode_opd = dp.kode_opd', 'left')
+                      ->join('subbagian ms', 'ms.kode_subbagian = dp.kode_subbagian AND ms.kode_bagian = dp.kode_bagian AND ms.kode_opd = dp.kode_opd', 'left')
+                      ->where('dp.nip', $nip)
+                      ->where('dp.status', 'aktif')
+                      ->get()->getRowArray();
 
         if ($pegawai) {
             return [
-                'instansi'  => $pegawai['nama_opd'] ?? null,
-                'bidang'    => $pegawai['nama_bagian'] ?? null,
+                'instansi'  => $pegawai['nama_opd']      ?? null,
+                'bidang'    => $pegawai['nama_bagian']    ?? null,
                 'subbidang' => $pegawai['nama_subbagian'] ?? null,
             ];
         }
@@ -837,20 +679,15 @@ class Tamu extends BaseController
 
             $img = @imagecreatefromstring($decodedData);
             if ($img !== false) {
-                // If it's PNG with transparency, fill background with white
-                $bg = imagecreatetruecolor(imagesx($img), imagesy($img));
+                $bg    = imagecreatetruecolor(imagesx($img), imagesy($img));
                 $white = imagecolorallocate($bg, 255, 255, 255);
                 imagefill($bg, 0, 0, $white);
                 imagecopy($bg, $img, 0, 0, 0, 0, imagesx($img), imagesy($img));
-
-                // 60% quality compression
-                imagejpeg($bg, $filePath, 60); 
+                imagejpeg($bg, $filePath, 60);
                 imagedestroy($img);
                 imagedestroy($bg);
-                
                 return $fileName;
             } else {
-                // Fallback
                 file_put_contents($filePath, $decodedData);
                 return $fileName;
             }
@@ -858,18 +695,12 @@ class Tamu extends BaseController
         return null;
     }
 
-    /**
-     * Serve file upload yang ada di luar public/ secara aman.
-     * Dipanggil via route: tamu/uploads/{type}/{year}/{month}/{filename}
-     */
     public function serveUpload(string $type, string $year, string $month, string $filename): \CodeIgniter\HTTP\Response
     {
-        // Validasi tipe
         if (!in_array($type, ['foto', 'ttd', 'file'], true)) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        // Sanitasi — cegah path traversal
         $filename = basename(rawurldecode($filename));
         $year     = preg_replace('/[^0-9]/', '', $year);
         $month    = preg_replace('/[^0-9]/', '', $month);
@@ -880,12 +711,13 @@ class Tamu extends BaseController
             . DIRECTORY_SEPARATOR . $month
             . DIRECTORY_SEPARATOR . $type
             . DIRECTORY_SEPARATOR . $filename;
+            
+            
 
         if (!is_file($filePath)) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        // Batasi akses file dokumen hanya untuk user yang login
         if ($type === 'file' && !auth()->loggedIn()) {
             return $this->response->setStatusCode(403)->setBody('Akses ditolak.');
         }
@@ -896,7 +728,8 @@ class Tamu extends BaseController
         return $this->response
             ->setHeader('Content-Type', $mimeType)
             ->setHeader('Content-Length', (string) $fileSize)
-            ->setHeader('Cache-Control', 'private, max-age=86400')
+            ->setHeader('Cache-Control', 'public, max-age=86400')
+            ->setHeader('Pragma', 'public')
             ->setBody(file_get_contents($filePath));
     }
 }

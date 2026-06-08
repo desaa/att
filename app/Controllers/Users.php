@@ -19,11 +19,11 @@ class Users extends BaseController
                            ->asArray()
                            ->findAll();
 
-        // Ambil semua OPD, Bagian, dan Subbagian dari Simpelgan untuk name lookup
-        $db = \Config\Database::connect('simpelgan');
-        $opdList       = $db->table('master_opd')->where('id_gov', 'P2300001')->get()->getResultArray();
-        $bagianList    = $db->table('master_bagian')->where('id_gov', 'P2300001')->get()->getResultArray();
-        $subbagianList = $db->table('master_subbagian')->where('id_gov', 'P2300001')->get()->getResultArray();
+        // Ambil semua OPD, Bagian, dan Subbagian dari lokal untuk name lookup
+        $db = \Config\Database::connect();
+        $opdList       = $db->table('opd')->get()->getResultArray();
+        $bagianList    = $db->table('bagian')->get()->getResultArray();
+        $subbagianList = $db->table('subbagian')->get()->getResultArray();
 
         // Buat map kode => nama untuk pencarian cepat
         $opdMap    = array_column($opdList, 'nama_opd', 'kode_opd');
@@ -56,8 +56,8 @@ class Users extends BaseController
 
     public function create()
     {
-        $db = \Config\Database::connect('simpelgan');
-        $data['opds'] = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+        $db = \Config\Database::connect();
+        $data['opds'] = $db->table('opd')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
         $data['bagians'] = [];
         $data['subbagians'] = [];
         return view('users/create', $data);
@@ -122,14 +122,13 @@ class Users extends BaseController
             return redirect()->to('users')->with('error', 'User tidak ditemukan.');
         }
 
-        $db = \Config\Database::connect('simpelgan');
+        $db = \Config\Database::connect();
 
-        $data['opds']     = $db->table('master_opd')->where('id_gov', 'P2300001')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
-        $data['bagians']  = $db->table('master_bagian')->where('id_gov', 'P2300001')->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->get()->getResultArray();
+        $data['opds']     = $db->table('opd')->orderBy('kode_opd', 'ASC')->get()->getResultArray();
+        $data['bagians']  = $db->table('bagian')->where('kode_opd', $user->kode_opd)->orderBy('nama_bagian', 'ASC')->get()->getResultArray();
         
         if ($user->kode_bagian) {
-            $data['subbagians'] = $db->table('master_subbagian')
-                                     ->where('id_gov', 'P2300001')
+            $data['subbagians'] = $db->table('subbagian')
                                      ->where('kode_opd', $user->kode_opd)
                                      ->where('kode_bagian', $user->kode_bagian)
                                      ->orderBy('nama_subbagian', 'ASC')

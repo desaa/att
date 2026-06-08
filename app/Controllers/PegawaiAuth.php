@@ -30,22 +30,7 @@ class PegawaiAuth extends BaseController
         $nip      = $this->request->getPost('nip');
         $password = $this->request->getPost('password');
 
-        // Live Auth Bridge to Simpelgan Connection Group
-        try {
-            $simpelganDb = \Config\Database::connect('simpelgan');
-            $simpelUser  = $simpelganDb->table('users')
-                                      ->where('nip', $nip)
-                                      ->where('id_gov', 'P2300001')
-                                      ->get()
-                                      ->getRowArray();
-
-            if ($simpelUser && password_verify($password, $simpelUser['password'])) {
-                // Sync this specific employee details and credentials locally in real-time
-                \App\Helpers\SimpelganSyncHelper::syncSinglePegawai($nip);
-            }
-        } catch (\Exception $e) {
-            // Fallback to local table if Simpelgan database is offline
-        }
+        // Login hanya mengecek database lokal
 
         $pegawaiModel = new PegawaiModel();
         $pegawai = $pegawaiModel->where('nip', $nip)->first();

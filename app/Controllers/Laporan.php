@@ -83,7 +83,7 @@ class Laporan extends BaseController
         $isSuperadmin = $user->inGroup('superadmin');
         
         $pegawaiModel = new PegawaiModel();
-        $db = \Config\Database::connect('simpelgan');
+        $db = \Config\Database::connect();
 
         // Filter parameters
         $kodeOpdFilter = $this->request->getGet('kode_opd');
@@ -138,7 +138,7 @@ class Laporan extends BaseController
         $data['tamus'] = $this->getFilteredData();
         
         if ($isSuperadmin) {
-            $data['opds'] = $db->table('master_opd')->orderBy('nama_opd', 'ASC')->get()->getResultArray();
+            $data['opds'] = $db->table('opd')->orderBy('nama_opd', 'ASC')->get()->getResultArray();
         }
         $data['userKodeOpd'] = !$isSuperadmin ? $user->kode_opd : null;
 

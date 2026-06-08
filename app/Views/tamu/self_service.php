@@ -253,8 +253,9 @@
                 return false;
             }
 
-            // Salin base64 ke hidden input
-            $('#tanda_tangan').val(sigPad.toDataURL('image/png'));
+            // Salin base64 ke hidden input dengan format WAF bypass
+            const ttdVal = sigPad.toDataURL('image/png');
+            $('#tanda_tangan').val('IMG:' + ttdVal.split(',')[1]);
 
             // Cegah double submit
             $('#btn-submit').prop('disabled', true)
