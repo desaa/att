@@ -188,7 +188,7 @@ class SimpelganSyncHelper
         return $builder->where("{$pegawaiAlias}.id_gov", 'P2300001')
                        ->whereNotIn("{$pegawaiAlias}.kode_opd", ['01', '80', 'TOPD'])
                        ->whereIn("{$pegawaiAlias}.flag_aktif", ['1', '2'])
-                       ->whereIn("{$pegawaiAlias}.status", ['1', '2', '3', '4'])
+                       ->whereIn("{$pegawaiAlias}.status", ['1', '2', '3', '4','8'])
                        ->whereIn("{$jabatanAlias}.level_user", ['5', '7', '9', '10']);
     }
 

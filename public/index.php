@@ -37,7 +37,7 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  * Override .env values yang bermasalah di shared hosting
  *---------------------------------------------------------------
  */
-$SESSION_PATH = '/home/d1sk0m1nv0/public_html/maincek/writable/session';
+$SESSION_PATH = '/home/d1sk0m1nv0/public_html/adatamu/writable/session';
 
 // Pastikan folder ada
 if (!is_dir($SESSION_PATH)) {
